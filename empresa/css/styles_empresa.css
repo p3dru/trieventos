@@ -25,4 +25,15 @@
 
 body{
     background-color: black;
+    color: white;
+}
+
+/*Específico "Sobre"*/
+
+.card-header, .card-body{
+    color: black;
+}
+
+.propaganda{
+    text-align: center;
 }

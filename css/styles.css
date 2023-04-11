@@ -18,11 +18,60 @@
     margin: 1% 17% 1%;
 }
 
+/*inicio*/
+#inicio{
+    background-color: #2E34A6;
+    position: relative;
+}
+
+.container-fluid{
+    padding: 1% 3% 1%;
+}
+
+.navigation-bar-index{
+    padding-right: 4%;
+    padding-left: 4%;
+}
+
+.navigation-bar{
+    background-color: #2E34A6;
+}
+
+/*mural-estabelecimentos*/
+body{
+    background-color: #CEE1F2;
+}
+
+#mural-estabelecimentos{
+    margin: 0%;
+}
+
+
 /*Footer*/
-#footer{
+footer{
+    background-color: #2E34A6;
+    text-align: center;
+    padding-top: 1%;
+    padding-bottom: 1%;
+}
+
+#footer-paragraph{
+    margin: 0px;
+}
+
+/*Específico "Sobre"*/
+
+.btn{
+    background-color: #2E34A6;
+}
+
+.propaganda{
     text-align: center;
 }
 
-body{
-    background-color: black;
+/*#creator-explanation{
+    text-align: left;
+    margin: 
 }
+*/
+
