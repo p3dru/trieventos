@@ -46,6 +46,14 @@ body{
     margin: 0%;
 }
 
+.card{
+    width: 20rem;
+}
+
+#pricing{
+    background-color: #2E34A6;
+}
+
 
 /*Footer*/
 footer{
@@ -53,6 +61,7 @@ footer{
     text-align: center;
     padding-top: 1%;
     padding-bottom: 1%;
+    color: white;
 }
 
 #footer-paragraph{
