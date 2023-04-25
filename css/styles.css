@@ -5,6 +5,9 @@
 
 /*margin left and right: 62.712;*/
 
+/*carousel*/
+
+
 /*Estabelecimentos*/
 #mural-estabelecimentos{
     margin: 1% 5%;
@@ -25,7 +28,7 @@
 }
 
 .container-fluid{
-    padding: 1% 3% 1%;
+    padding: 0% 3% 0%;
 }
 
 .navigation-bar-index{
@@ -35,6 +38,11 @@
 
 .navigation-bar{
     background-color: #2E34A6;
+}
+
+/*carousel*/
+.carousel{
+    padding: 3%;
 }
 
 /*mural-estabelecimentos*/
