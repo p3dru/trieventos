@@ -1,0 +1,51 @@
+<%- include('partials/header') %>
+
+<div class="box-parent-login">
+    <div class="box-parent-login">
+        <form role="form" action="/login">
+            <fieldset>
+    
+                <div class="form-group ls-login-user">
+                    <label for="userLogin">Nome</label>
+                    <input class="form-control ls-login-bg-user input-lg" id="userLogin" type="text" aria-label="Nome" placeholder="Nome">
+                </div>
+
+                <div class="form-group ls-login-user">
+                    <label for="userLogin">E-mail</label>
+                    <input class="form-control ls-login-bg-user input-lg" id="userLogin" type="text" aria-label="E-mail" placeholder="E-mail">
+                </div>
+
+                <div class="form-group ls-login-user">
+                    <label for="userLogin">Senha</label>
+                    <input class="form-control ls-login-bg-user input-lg" id="userLogin" type="text" aria-label="Senha" placeholder="Senha">
+                </div>
+
+                <div class="form-group ls-login-user">
+                    <label for="userLogin">Confirmar Senha</label>
+                    <input class="form-control ls-login-bg-user input-lg" id="userLogin" type="text" aria-label="Confirmar-Senha" placeholder="Confirmar Senha">
+                </div>
+
+                <fieldset>
+                    <legend>Tipo de usuário</legend>
+                
+                    <div>
+                      <input type="radio" id="locador" name="drone" value="Locador"
+                             checked>
+                      <label for="locador">Locador</label>
+                    </div>
+                
+                    <div>
+                      <input type="radio" id="locatário" name="drone" value="Locatário">
+                      <label for="dewey">Locatário</label>
+                    </div>
+                </fieldset>
+    
+
+                <input type="submit" value="Entrar" class="btn btn-primary btn-lg btn-block"/>
+    
+            </fieldset>
+        </form>
+    </div>
+</div>
+
+<%- include('partials/footer') %>
