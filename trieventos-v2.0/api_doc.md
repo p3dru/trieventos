@@ -1,11 +1,9 @@
-# Documentação da API
-
-## Url base:  
+# Url base:  
 
 ![image](https://github.com/p3dru/projeto_integrador_I/assets/61830482/c34a6a07-5425-4d0b-af40-065caecb6ae0)
 
-## Endpoints
-### "/"
+# Endpoints
+## "/"
 
 Method: Get '/'
 
@@ -19,7 +17,7 @@ Exemplo de resposta (futuro):
 
 ![image](https://github.com/p3dru/projeto_integrador_I/assets/61830482/3415d4f9-e985-4501-80b8-8f96838cbb60)
 
-### "/estabelecimentos/{nome_estabelecimento}"
+## "/estabelecimentos/{nome_estabelecimento}"
 
 Method: Get '/estabelecimentos/{nome_estabelecimento}'
 
@@ -34,7 +32,7 @@ Exemplo de resposta (futuro):
 ![image](https://github.com/p3dru/projeto_integrador_I/assets/61830482/b388f40d-bb27-4201-afdb-e8c8c59f0665)
 
 
-### "/estabelecimentos/{nome_estabelecimento}/horarios"
+## "/estabelecimentos/{nome_estabelecimento}/horarios"
 
 Method: Get '/estabelecimentos/{nome_estabelecimento}/horarios'
 
@@ -48,7 +46,7 @@ Exemplo de resposta (futuro):
 
 ![image](https://github.com/p3dru/projeto_integrador_I/assets/61830482/30dae370-adfc-4c1d-808d-010d3c6176a5)
 
-### "/cadastrar-usuario"
+## "/cadastrar-usuario"
 
 Method: Get '/cadastrar-usuario'
 
