@@ -1,51 +1,37 @@
 <%- include('partials/header') %>
 
-<div class="box-parent-login">
-    <div class="box-parent-login">
-        <form role="form" action="/login">
-            <fieldset>
-    
-                <div class="form-group ls-login-user">
-                    <label for="userLogin">Nome</label>
-                    <input class="form-control ls-login-bg-user input-lg" id="userLogin" type="text" aria-label="Nome" placeholder="Nome">
-                </div>
-
-                <div class="form-group ls-login-user">
-                    <label for="userLogin">E-mail</label>
-                    <input class="form-control ls-login-bg-user input-lg" id="userLogin" type="text" aria-label="E-mail" placeholder="E-mail">
-                </div>
-
-                <div class="form-group ls-login-user">
-                    <label for="userLogin">Senha</label>
-                    <input class="form-control ls-login-bg-user input-lg" id="userLogin" type="text" aria-label="Senha" placeholder="Senha">
-                </div>
-
-                <div class="form-group ls-login-user">
-                    <label for="userLogin">Confirmar Senha</label>
-                    <input class="form-control ls-login-bg-user input-lg" id="userLogin" type="text" aria-label="Confirmar-Senha" placeholder="Confirmar Senha">
-                </div>
-
-                <fieldset>
-                    <legend>Tipo de usuário</legend>
-                
-                    <div>
-                      <input type="radio" id="locador" name="drone" value="Locador"
-                             checked>
-                      <label for="locador">Locador</label>
-                    </div>
-                
-                    <div>
-                      <input type="radio" id="locatário" name="drone" value="Locatário">
-                      <label for="dewey">Locatário</label>
-                    </div>
-                </fieldset>
-    
-
-                <input type="submit" value="Entrar" class="btn btn-primary btn-lg btn-block"/>
-    
-            </fieldset>
-        </form>
+<form action="/cadastrar-usuario" method="post">
+    <div class="mb-3">
+        <label for="userName" class="form-label">Nome de usuário</label>
+        <input type="email" class="form-control" id="userName" aria-describedby="emailHelp">
+      </div>
+    <div class="mb-3">
+      <label for="userEmail" class="form-label">E-mail</label>
+      <input type="email" class="form-control" id="userEmail" aria-describedby="emailHelp">
+      <div id="emailHelp" class="form-text">Nós não compartilharemos seu e-mail com terceiros</div>
     </div>
-</div>
+    <div class="mb-3">
+      <label for="userPassword" class="form-label">Senha</label>
+      <input type="password" class="form-control" id="userPassword">
+    </div>
+    <div class="mb-3">
+        <label for="userRetypePassword" class="form-label">Confirmar Senha</label>
+        <input type="password" class="form-control" id="userRetypePassword">
+    </div>
+    <div>Selecione o tipo de usuário</div>
+    <div class="form-check">
+        <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1">
+        <label class="form-check-label" for="flexRadioDefault1">
+          Locatário (usuário comum)
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" checked>
+        <label class="form-check-label" for="flexRadioDefault2">
+          Locador (estabelecimento)
+        </label>
+      </div>
+    <button type="submit" class="btn btn-primary">Cadastrar</button>
+  </form>
 
 <%- include('partials/footer') %>

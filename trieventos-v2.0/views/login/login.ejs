@@ -1,0 +1,13 @@
+<%- include('header-login') %>
+
+<div class="box-parent-login">
+    <form role="form" action="/login-locatarios">
+        <input type="submit" value="Entrar como Usuário Comum" class="btn btn-primary btn-lg btn-block"/>
+    </form>
+
+    <form role="form" action="/login-estabelecimentos">
+        <input type="submit" value="Entrar como estabelecimento" class="btn btn-primary btn-lg btn-block"/>
+    </form>
+</div>
+
+<%- include('../partials/footer') %>
