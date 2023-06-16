@@ -1,0 +1,140 @@
+/*GERAL*/
+#container-nav{
+    margin: 1% 5% 1% 5%;
+}
+
+body{
+    background-color: #FCFFE9;
+}
+
+.container-botoes{
+    overflow: auto;
+}
+
+.botoes{
+    float: left;
+    margin-left: 2%;
+}
+
+.footer{
+    background-color: white;
+}
+
+/*LOGIN*/
+
+#login-inicial{
+    padding: 8% 25% 18% 25%;
+}
+
+.form-login{
+    padding-top: 3%;
+    padding-bottom: 0%;
+}
+
+.dados-login, .redefinir-senha, .cadastro{
+    /*localde inserção dos dados*/
+    padding: 8% 25% 18% 25%;
+}
+
+/*página de redefinição de senha*/
+.redefinir-senha{
+    padding-bottom: 15%
+}
+
+/*local de cadastro*/
+.cadastro{
+    padding-top: 6%;
+    padding-bottom: 5%
+}
+
+#email-aviso{
+    font-size: 0.75rem;
+}
+
+#btn-cadastrar{
+    margin-bottom: 0.8%;
+    margin-left: 44%;
+    margin-top: 3%;
+}
+
+#btn-alterar{
+    /*botão para alterar dados em redefinir-senha*/
+    margin-top: 2%;
+    margin-bottom: 10.8%;
+    margin-left: 35%;
+    width: 30%
+}
+
+/*botão de login ou para acessar outros dados*/
+#btn-entrar{
+    margin-top: 2%;
+    margin-left: 35%;
+    width: 30%;
+    align-items: center;
+}
+
+#dados-login{
+    /*caixas de input de texto*/
+    margin-left: 20%;
+    margin-right: 20%;
+}
+
+
+
+#operacoes-login{
+    /*redefinir senha e cadastrar agora*/
+    margin-left: 41%;
+    justify-content: center;
+}
+
+.po{
+    /*compensação de tamanho para alinha com "esqueci minha senha"*/
+    margin-left: 2%;
+}
+
+/*backgrounds de login*/
+
+
+/*FOOTER*/
+.footer{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#footer-paragraph{
+    margin-bottom: 0rem;
+}
+
+#icons{
+    /*icones apenas*/
+    margin-left: 27%;
+}
+
+
+/*HOME*/
+/*centralização de cards e limitado a 4*/
+.container {
+    padding-top: 4%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+  
+.row {
+    display: flex;
+    flex-wrap: wrap; /* Permite que as colunas sejam "quebradas" em várias linhas */
+    max-width: 1600px; /* Define a largura máxima para o número máximo de colunas */
+}
+
+.col {
+    flex: 1 0 25%; /* Cada coluna ocupa 25% da largura disponível */
+    text-align: start;
+    padding: 10px;
+    box-sizing: border-box; /* Considera o padding na largura das colunas */
+}
+
+#carouselExample{
+    max-width: 400px;
+    margin: 0 auto;
+}

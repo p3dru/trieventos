@@ -1,28 +1,61 @@
 <%- include('partials/header') %>
 
-<div class="description">
-    <h3>Título do estabelecimento</h3>
-    <p>Descrição do local</p>
+<div class="container-fluid">
+    <h3>Estabelecimento X</h3>
 
-    <div class="box-parent-login">
-        <div class="box-parent-login">
-            <form role="form" action="/estabelecimentos/x/horarios">
-                <fieldset>
-                    <input type="submit" value="Visualizar horários" class="btn btn-primary btn-lg btn-block"/>
-                </fieldset>
-            </form>
+    <p>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Viverra orci sagittis eu volutpat odio facilisis mauris sit amet. Posuere morbi leo urna molestie. Praesent elementum facilisis leo vel fringilla. Varius sit amet mattis vulputate enim nulla aliquet porttitor. Ultricies integer quis auctor elit sed vulputate. Sapien et ligula ullamcorper malesuada proin libero nunc consequat interdum. Et malesuada fames ac turpis. Elementum pulvinar etiam non quam lacus. Amet porttitor eget dolor morbi non arcu risus quis varius. Scelerisque purus semper eget duis at. Sapien pellentesque habitant morbi tristique senectus et. Pretium vulputate sapien nec sagittis aliquam malesuada. Malesuada nunc vel risus commodo viverra. Interdum posuere lorem ipsum dolor sit. Orci dapibus ultrices in iaculis nunc sed augue lacus viverra. Pellentesque eu tincidunt tortor aliquam nulla. Arcu risus quis varius quam quisque id diam vel quam. Aliquet enim tortor at auctor urna nunc id cursus.
+    </p>
+    <p>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Viverra orci sagittis eu volutpat odio facilisis mauris sit amet. Posuere morbi leo urna molestie. Praesent elementum facilisis leo vel fringilla. Varius sit amet mattis vulputate enim nulla aliquet porttitor. Ultricies integer quis auctor elit sed vulputate. Sapien et ligula ullamcorper malesuada proin libero nunc consequat interdum. Et malesuada fames ac turpis. Elementum pulvinar etiam non quam lacus. Amet porttitor eget dolor morbi non arcu risus quis varius. Scelerisque purus semper eget duis at. Sapien pellentesque habitant morbi tristique senectus et. Pretium vulputate sapien nec sagittis aliquam malesuada. Malesuada nunc vel risus commodo viverra. Interdum posuere lorem ipsum dolor sit. Orci dapibus ultrices in iaculis nunc sed augue lacus viverra. Pellentesque eu tincidunt tortor aliquam nulla. Arcu risus quis varius quam quisque id diam vel quam. Aliquet enim tortor at auctor urna nunc id cursus.
+    </p>
+
+    <h3>Algumas Fotos</h3>
+
+    <div id="carouselExample" class="carousel slide">
+        <div class="carousel-inner">
+          <div class="carousel-item active">
+            <img src="\images\carroussel-estabelecimento\1.png" class="d-block w-100" alt="...">
+          </div>
+          <div class="carousel-item">
+            <img src="\images\carroussel-estabelecimento\141424-o-que-e-cnes-cadastro-nacional-de-estabelecimentos-de-saude.jpg" class="d-block w-100" alt="...">
+          </div>
+          <div class="carousel-item">
+            <img src="\images\carroussel-estabelecimento\Untitled-design-3.png" class="d-block w-100" alt="...">
+          </div>
         </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Next</span>
+        </button>
     </div>
 
-    <div class="box-parent-login">
-        <div class="box-parent-login">
-            <form role="form" action="/">
-                <fieldset>
-                    <input type="submit" value="Voltar" class="btn btn-primary btn-lg btn-block"/>
-                </fieldset>
-            </form>
+
+    <div class="container-botoes">
+        <div class="box-parent-login botoes">
+            <div class="box-parent-login">
+                <form role="form" action="/">
+                    <fieldset>
+                        <input type="submit" value="Voltar" class="btn btn-primary"/>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+        <div class="box-parent-login botoes">
+            <div class="box-parent-login">
+                <form role="form" action="/estabelecimentos/x/horarios">
+                    <fieldset>
+                        <input type="submit" value="Visualizar horários" class="btn btn-primary"/>
+                    </fieldset>
+                </form>
+            </div>
         </div>
     </div>
+    
 
 </div>
 

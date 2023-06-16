@@ -1,30 +1,59 @@
 <%- include('partials/header') %>
 
-<h1>Horários disponíveis</h1>
-
-  <table id="horarioTable">
+<h3>Horários disponíveis</h3>
+<table>
     <thead>
       <tr>
-        <th>Hora</th>
-        <th>Segunda</th>
-        <th>Terça</th>
-        <th>Quarta</th>
-        <th>Quinta</th>
-        <th>Sexta</th>
+          <th class="cabecalho-tabela"><span class="badge bg-black">Hora</span></th>
+          <% for (let i = 0; i < diasSemana.length; i++){ %>
+            <th class="cabecalho-tabela"><span class="badge bg-black"><%= diasSemana[i] %></span></th>
+          <% } %>
       </tr>
     </thead>
     <tbody>
-        
-    </tbody>
-  </table>
+      <% for (let i = 0; i < horas.length; i++) { %>
+        <tr>
+          <td <span class="badge bg-black"><%= horas[i] %></span></td>
+          <% for (let j = 0; j < diasSemana.length; j++) { %>
+            <% for (let h = 0; h < ocupados.length; h++) { %>
+              <% if (diasSemana[j] == ocupados[h].dia) { %>
+                <% if (horas[i] == ocupados[h].hora) { %>
+                  <td class="horario-clicavel" data-hora="<%= horas[i] %>" data-dia="<%= diasSemana[j] %>">
+                    <button type="button" class="btn btn-danger">Indisponível</button>
+                  </td>
+                <% } else { %>
+                  <% if (horas[i] != ocupados[h].hora) { %>
+                    <td class="horario-clicavel" data-hora="<%= horas[i] %>" data-dia="<%= diasSemana[j] %>">
+                      <button type="button" class="btn btn-success">Disponível</button>
+                    </td>
+                  <% } else { %>
 
+                    //////////////////////////////////////////////////////////////////////VERIFICAR
+                    <% if (diasSemana[j] != ocupados[h].dia) { %>
+                      <td class="horario-clicavel" data-hora="<%= horas[i] %>" data-dia="<%= diasSemana[j] %>">
+                        <button type="button" class="btn btn-success">Disponível</button>
+                      </td>
+                    <% } %>
+                  <% } %>
+                <% } %>
+              <% } %>              
+            <% } %>
+          <% } %>
+        </tr> 
+      <% } %>
+    </tbody>
+</table>
+<!--
+
+-->
   <div class="box-parent-login">
     <div class="box-parent-login">
         <form role="form" action="/estabelecimentos/x">
             <fieldset>
-                <input type="submit" value="Voltar" class="btn btn-primary btn-lg btn-block"/>
+                <input type="submit" value="Voltar" class="btn btn-primary"/>
             </fieldset>
         </form>
     </div>
 </div>
+
 <%- include('partials/footer') %>
