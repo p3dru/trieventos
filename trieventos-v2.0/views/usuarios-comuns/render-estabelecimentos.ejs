@@ -1,0 +1,59 @@
+<%- include('../partials/header') %>
+
+<div class="container-fluid">
+    <h3><%= estabelecimento[0].titulo_card %></h3>
+
+    <p>
+        <%= estabelecimento[0].descricao_estabelecimento %>
+    </p>
+
+    <h3>Algumas Fotos</h3>
+
+    <div id="carouselExample" class="carousel slide">
+        <div class="carousel-inner">
+          <div class="carousel-item active">
+            <img src="\images\carroussel-estabelecimento\1.png" class="d-block w-100" alt="...">
+          </div>
+          <div class="carousel-item">
+            <img src="\images\carroussel-estabelecimento\141424-o-que-e-cnes-cadastro-nacional-de-estabelecimentos-de-saude.jpg" class="d-block w-100" alt="...">
+          </div>
+          <div class="carousel-item">
+            <img src="\images\carroussel-estabelecimento\Untitled-design-3.png" class="d-block w-100" alt="...">
+          </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+
+
+    <div class="container-botoes">
+        <div class="box-parent-login botoes">
+            <div class="box-parent-login">
+                <form role="form" action="/">
+                    <fieldset>
+                        <input type="submit" value="Voltar" class="btn btn-primary"/>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+        <div class="box-parent-login botoes">
+            <div class="box-parent-login">
+                <form role="form" action="/estabelecimentos/x/horarios">
+                    <fieldset>
+                        <input type="submit" value="Visualizar horários" class="btn btn-primary"/>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+
+</div>
+
+<%- include('../partials/footer') %>

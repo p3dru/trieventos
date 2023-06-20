@@ -1,0 +1,6 @@
+create table estabelecimentos(
+	id_estabelecimentos serial primary key,
+	titulo_card varchar(30),
+	texto_card varchar(60),
+	descricao_estabelecimento text
+);

@@ -127,6 +127,19 @@
             </div>
         </div>
       </div>
+      <% for (let i = 0; i < estabelecimento.length; i++){ %>
+        <div class="col">
+          <div class="card" style="width: 18rem;">
+            <img src="images\carrousel\Post2.jpg" class="card-img-top" alt="...">
+            <div class="card-body">
+              <h5 class="card-title"><%= estabelecimento[i].titulo_card %></h5>
+              <p class="card-text"><%= estabelecimento[i].texto_card %></p>
+              <a href="/estabelecimentos/<%= estabelecimento[i].titulo_card %>" class="btn btn-primary">Ver Local</a>
+            </div>
+          </div>
+        </div>
+
+      <% } %>
     </div>
 </div>
   

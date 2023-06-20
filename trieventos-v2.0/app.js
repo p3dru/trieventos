@@ -1,9 +1,21 @@
 const express = require("express");
 const ejs = require('ejs');
 const path = require('path');
+const {Pool} = require('pg');
+const { json } = require("body-parser");
 
 
 const app = express();
+
+const pool = new Pool(
+    {
+        user: 'postgres',
+        host: 'localhost',
+        database: 'testes_tabelas',
+        password: 'bd_!s_for_d4t4',
+        port: 5432,
+    }
+);
 
 app.set('view engine', 'ejs');
 
@@ -11,9 +23,18 @@ app.set('view engine', 'ejs');
 //para servir arquivos estáticos ao CSS
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/', function(req, res){
+app.get('/', async (req, res) => {
     //console.log(res.json);
-    res.render('home', {titleTag: 'Home'});
+    try {
+        const result = await pool.query('select * from estabelecimentos');
+        const dadosObtidos = result.rows;
+        //console.log(dadosObtidos[0].titulo_card);
+        //console.log(dadosObtidos.length);
+        res.render('home', {titleTag: 'Home', estabelecimento: dadosObtidos});
+    } catch (error) {
+        console.error('Erro ao buscar dados: ', error);
+        res.sendStatus(500).send('Erro interno');
+    }
 });
 
 app.get('/sobre', function(req, res){
@@ -26,6 +47,22 @@ app.get('/sobre/planos', function(req, res){
 
 app.get('/estabelecimentos/x', function(req,res){
     res.render('estabelecimentos', {titleTag: 'Estabelecimentos'});
+});
+
+app.get('/estabelecimentos/:nome_estabelecimento', async (req,res) => {
+    const nome = req.params.nome_estabelecimento;
+    try {
+        const result = await pool.query(`select * from estabelecimentos where titulo_card = '${nome}'`);
+        const dadosObtidos = result.rows;
+        const titleTag = dadosObtidos[0].titulo_card;
+        //console.log(titleTag);
+        //console.log(dadosObtidos);
+        res.render('usuarios-comuns/render-estabelecimentos.ejs', {titleTag: titleTag, estabelecimento: dadosObtidos});
+    } catch (error) {
+        console.error('Erron ao buscar dados: ', error);
+        res.sendStatus(500).send('Erro Interno');
+    }
+    //res.render('estabelecimentos', {titleTag: 'Estabelecimentos'});
 });
 
 app.get('/estabelecimentos/x/horarios', function(req,res){
@@ -59,6 +96,10 @@ app.get('/perfil', function(req, res){
 app.get('/cadastrar-usuario', function(req, res){
     res.render('cadastro-usuario', {titleTag: 'Cadastrar Usuário'});
 });
+
+app.get('/cadastrar-estabelecimento', function(req, res){
+    res.render('estabelecimentos/cadastro-estabelecimentos.ejs', {titleTag: 'Cadastrar Estabelecimento'});
+})
 
 app.get('/redefinir-senha', function(req, res){
     res.render('redefinir-senha', {titleTag: 'Redefinir Senha'});
