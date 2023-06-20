@@ -9,11 +9,11 @@ const app = express();
 
 const pool = new Pool(
     {
-        user: 'postgres',
-        host: 'localhost',
-        database: 'testes_tabelas',
-        password: 'bd_!s_for_d4t4',
-        port: 5432,
+        user: '',
+        host: '',
+        database: '',
+        password: '',
+        port: ,
     }
 );
 
