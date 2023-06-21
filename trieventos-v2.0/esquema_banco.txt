@@ -4,3 +4,22 @@ create table estabelecimentos(
 	texto_card varchar(60),
 	descricao_estabelecimento text
 );
+
+CREATE TABLE usuarios (
+    id_usuario serial PRIMARY KEY,
+    nome varchar(50),
+    email varchar(50),
+    senha varchar(50),
+	tipo_usuario varchar(20)
+);
+
+create table usuarios_estabelecimentos(
+	id_usuario_e serial PRIMARY KEY,
+    nome varchar(50),
+    email varchar(50),
+    senha varchar(50),
+	tipo_usuario varchar(20)
+);
+
+select * from usuarios_estabelecimentos
+select * from usuarios
