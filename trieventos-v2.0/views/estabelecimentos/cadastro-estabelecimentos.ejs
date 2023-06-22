@@ -1,27 +1,29 @@
 <%- include('../login/header-login') %>
 
+
 <div class="cadastro">
-  <form action="/cadastrar-usuario" method="post">
+  <form action="/cadastrar-estabelecimento" method="post">
     <div class="mb-3">
-        <label for="userName" class="form-label">Nome de usuário</label>
-        <input type="email" class="form-control" id="userName" aria-describedby="emailHelp">
-      </div>
+      <label for="userName" class="form-label">Nome de usuário</label>
+      <input type="text" class="form-control" id="userName" name="nome" aria-describedby="emailHelp">
+    </div>
     <div class="mb-3">
       <label for="userEmail" class="form-label">E-mail</label>
-      <input type="email" class="form-control" id="userEmail" aria-describedby="emailHelp">
+      <input type="email" class="form-control" id="userEmail" name="email" aria-describedby="emailHelp">
       <p id="email-aviso">*Nós não compartilharemos seu e-mail com terceiros</p>
     </div>
     <div class="mb-3">
       <label for="userPassword" class="form-label">Senha</label>
-      <input type="password" class="form-control" id="userPassword">
+      <input type="password" class="form-control" id="userPassword" name="senha">
     </div>
     <div class="mb-3">
-        <label for="userRetypePassword" class="form-label">Confirmar Senha</label>
-        <input type="password" class="form-control" id="userRetypePassword">
+      <label for="userRetypePassword" class="form-label">Confirmar Senha</label>
+      <input type="password" class="form-control" id="userRetypePassword" name="confirmarSenha">
     </div>
-    <button type="submit" class="btn btn-primary" id="btn-cadastrar">Cadastrar Estabelecimentos</button>
+    <button type="submit" class="btn btn-primary" id="btn-cadastrar">Cadastrar Uusuário</button>
   </form>
 </div>
+
 
 
 <%- include('../partials/footer') %>
