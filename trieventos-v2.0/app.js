@@ -6,8 +6,23 @@ const jwt = require('jsonwebtoken');
 const expressJwt = require('express-jwt');
 const bcrypt = require('bcryptjs');
 const match = require('assert');
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+
+
+
+const chave = '3eventsxcz';
 
 const app = express();
+
+app.set('view engine', 'ejs');
+
+
+app.use(express.json());
+//para servir arquivos estáticos ao CSS
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
 
 const pool = new Pool(
     {
@@ -26,30 +41,22 @@ function generateToken(user) {
   
 
   function authenticateToken(req, res, next) {
-    const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.split(' ')[1];
-  
+    const token = req.cookies.token;
+    //console.log(token);
+
     if (!token) {
-      return res.status(401).json({ message: 'Token não fornecido' });
+      return res.redirect('/login');
     }
-  
-    jwt.verify(token, secretKey, (err, user) => {
-      if (err) {
-        return res.status(403).json({ message: 'Token inválido' });
-      }
-  
-      req.user = user;
+
+    try {
+      const decoded = jwt.verify(token, chave);
+      req.user = decoded;
       next();
-    });
+    } catch (error) {
+      return res.redirect('/login');
+    }
   }
   
-  
-app.set('view engine', 'ejs');
-
-app.use(express.json());
-//para servir arquivos estáticos ao CSS
-app.use(express.static(path.join(__dirname, 'public')));
-
 
 app.get('/', async (req, res) => {
     //console.log(res.json);
@@ -80,7 +87,7 @@ app.get('/estabelecimentos/x', function(req,res){
 app.get('/estabelecimentos/:nome_estabelecimento', async (req,res) => {
     const nome = req.params.nome_estabelecimento;
     try {
-        const result = await pool.query(`select * from estabelecimentos where titulo_card = '${nome}'`);
+        const result = await pool.query(`select * from estabelecimentos where estabelecimento_nome = '${nome}'`);
         const dadosObtidos = result.rows;
         const titleTag = dadosObtidos[0].titulo_card;
         //console.log(titleTag);
@@ -119,6 +126,7 @@ app.get('/login-estabelecimentos', async(req, res) => {
 });
 
 app.get('/perfil', authenticateToken, function(req, res){
+    console.log(req.id + 'chamou a rota');
     res.render('perfil', {titleTag: 'Perfil'});
 });
 
@@ -143,24 +151,45 @@ app.get('/x/locacoes', authenticateToken, function(req, res){
 })
 
 // Posts
-app.post('/login-locatorio', async (req, res) => {
-    const { nome, senha } = req.body;
-  
+app.post('/login-locatario', async (req, res) => {
+    const nome = req.body.nome;
+    const senha = req.body.senha;
+
+    if(!nome){
+        return res.status(400).json({ message: 'Campo "Usuário" não preenchido' });
+    }
+
+    if(!senha){
+        return res.status(400).json({ message: 'Campo "Senha" não preenchido' });
+    }
+    
+
     try {
-      const result = await pool.query('SELECT * FROM usuario WHERE nome = $1', [nome]);
+      const result = await pool.query(`SELECT * FROM usuarios WHERE usuario_nome = '${nome}'`);
       const user = result.rows[0];
-  
-      if (!user) {
-        return res.status(401).json({ message: 'Credenciais Inválidas' });
+
+      if (user === undefined){
+        return res.status(404).json({message: 'Usuário não possui cadastro'})
       }
+
+
+      //console.log(user);
+
+      //if (user.length < 1){}
   
       // Comparar a senha fornecida com a senha armazenada no banco de dados
-      if (senha !== user.senha) {
+      const compararSenha = await bcrypt.compare(senha, user.usuario_senha);
+
+      if (compararSenha === false) {
         return res.status(401).json({ message: 'Credenciais Inválidas' });
       }
   
-      const token = jwt.sign({ id: user.id_usuario, tipo: 'usuario' }, 'chave-secreta');
-      res.json({ token });
+      const token = jwt.sign({ id: user.usuario_id, tipo: 'usuario' }, chave, {expiresIn: 1800});
+
+      res.cookie('token', token, { maxAge: 1800000, httpOnly: true});
+      //res.json({auth: true, token });
+      //console.log(token);
+      res.redirect('/');
     } catch (error) {
       console.error('Erro de autenticação', error);
       res.sendStatus(500);
@@ -172,21 +201,28 @@ app.post('/login-locatorio', async (req, res) => {
 //gets de estabelecimentos
 
 app.post('/login-estabelecimentos', async (req, res) => {
-  const { nome, senha } = req.body;
+  const nome = req.body.nome;
+  const senha = req.body.senha;
 
   try {
-    const result = await pool.query('SELECT * FROM usuario_estabelecimento WHERE nome = $1', [nome]);
+    const result = await pool.query(`SELECT * FROM estabelecimentos WHERE estabelecimento_nome = '${nome}'`);
     const estabelecimento = result.rows[0];
+
+    if (estabelecimento === undefined){
+        return res.status(404).json({message: 'Estabelecimento não possui cadastro'})
+      }
 
     if (!estabelecimento) {
       return res.status(401).json({ message: 'Credenciais Inválidas' });
     }
 
-    const match = await bcrypt.compare(senha, estabelecimento.senha);
+    const match = await bcrypt.compare(senha, estabelecimento.estabelecimento_senha);
 
     if (match) {
-      const token = jwt.sign({ id: estabelecimento.id_estab, tipo: 'estabelecimento' }, 'chave-secreta');
-      res.json({ token });
+      const token = jwt.sign({ id: user.usuario_id, tipo: 'usuario' }, chave, {expiresIn: 1800});
+
+      res.cookie('token', token, { maxAge: 1800000, httpOnly: true});
+      res.redirect('/local');
     } else {
       return res.status(401).json({ message: 'Credenciais Inválidas' });
     }
@@ -203,24 +239,40 @@ app.get('/local', function(req, res){
 })
 
 //posts
-app.post('/cadastrar-usuario', function(req, res) {
-    const { nome, email, senha, confirmarSenha } = req.body;
-  
+app.post('/cadastrar-usuario', async (req, res) => {
+    const nome = req.body.nome;
+    const email = req.body.email;
+    const senha = req.body.senha;
+    const confirmarSenha = req.body.confirmarSenha;
+
+    //console.log(nome, email, senha, confirmarSenha)
+    
     // Verificar se todos os campos foram preenchidos
-    if (!nome || !email || !senha || !confirmarSenha) {
-      return res.status(400).json({ message: 'Todos os campos devem ser preenchidos' });
+    if (!nome) {
+      return res.status(400).json({ message: 'Campo "Nome de usuário" não preenchido' });
     }
-  
+
+    if (!email) {
+        return res.status(400).json({ message: 'Campo "E-mail" não preenchido' });
+    }
+
+    if (!senha) {
+        return res.status(400).json({ message: 'Campo "Senha" não preenchido' });
+    }
+    if (!confirmarSenha) {
+        return res.status(400).json({ message: 'Campo "Confirmar Senha" não preenchido' });
+    }
     // Verificar se a senha e a confirmação de senha são iguais
     if (senha !== confirmarSenha) {
       return res.status(400).json({ message: 'A senha e a confirmação de senha não correspondem' });
     }
   
+    const hashSenha = await bcrypt.hash(senha, 10);
+
     // Verificar se o usuário já está cadastrado (exemplo com consulta no banco de dados)
-    const query = 'SELECT * FROM usuarios WHERE nome = $1';
-    const values = [nome];
+    const query = `SELECT * FROM usuarios WHERE usuario_nome = '${nome}'`;
   
-    pool.query(query, values, (error, result) => {
+    pool.query(query, (error, result) => {
       if (error) {
         console.error('Erro ao verificar usuário no banco de dados:', error);
         return res.status(500).json({ message: 'Erro interno' });
@@ -231,10 +283,10 @@ app.post('/cadastrar-usuario', function(req, res) {
       }
   
       // Cadastrar o usuário (exemplo com inserção no banco de dados)
-      const insertQuery = 'INSERT INTO usuarios (nome, email, senha) VALUES ($1, $2, $3)';
-      const insertValues = [nome, email, senha];
+      const insertQuery = `INSERT INTO usuarios (usuario_nome, usuario_email, usuario_senha) VALUES ('${nome}', '${email}', '${hashSenha}')`;
+      //const insertValues = [nome, email, senha];
   
-      pool.query(insertQuery, insertValues, (insertError, insertResult) => {
+      pool.query(insertQuery, (insertError, insertResult) => {
         if (insertError) {
           console.error('Erro ao cadastrar usuário no banco de dados:', insertError);
           return res.status(500).json({ message: 'Erro interno' });
@@ -245,7 +297,67 @@ app.post('/cadastrar-usuario', function(req, res) {
     });
   });
   
+  app.post('/cadastrar-estabelecimento', async (req, res) => {
+    const nome = req.body.nome;
+    const email = req.body.email;
+    const senha = req.body.senha;
+    const confirmarSenha = req.body.confirmarSenha;
+
+    //console.log(nome, email, senha, confirmarSenha)
+    
+    // Verificar se todos os campos foram preenchidos
+    if (!nome) {
+      return res.status(400).json({ message: 'Campo "Nome de usuário" não preenchido' });
+    }
+
+    if (!email) {
+        return res.status(400).json({ message: 'Campo "E-mail" não preenchido' });
+    }
+
+    if (!senha) {
+        return res.status(400).json({ message: 'Campo "Senha" não preenchido' });
+    }
+    if (!confirmarSenha) {
+        return res.status(400).json({ message: 'Campo "Confirmar Senha" não preenchido' });
+    }
+    // Verificar se a senha e a confirmação de senha são iguais
+    if (senha !== confirmarSenha) {
+      return res.status(400).json({ message: 'A senha e a confirmação de senha não correspondem' });
+    }
   
+    const hashSenha = await bcrypt.hash(senha, 10);
+
+    // Verificar se a senha e a confirmação de senha são iguais
+    if (senha !== confirmarSenha) {
+      return res.status(400).json({ message: 'A senha e a confirmação de senha não correspondem' });
+    }
+
+    // Verificar se o estabelecimento já está cadastrado
+    const query = `SELECT * FROM estabelecimentos WHERE estabelecimento_nome = '${nome}'`;
+
+    pool.query(query, (error, result) => {
+      if (error) {
+        console.error('Erro ao verificar estabelecimento no banco de dados:', error);
+        return res.status(500).json({ message: 'Erro interno' });
+      }
+
+      if (result.rows.length > 0) {
+        return res.status(400).json({ message: 'Estabelecimento já cadastrado' });
+      }
+
+      const insertQuery = `INSERT INTO estabelecimentos (estabelecimento_nome, estabelecimento_email, estabelecimento_senha, tipo_usuario) VALUES ('${nome}', '${email}', '${hashSenha}', 'estabelecimentos')`;
+      //const insertValues = [nome, email, senha, 'estabelecimentos'];
+  
+      pool.query(insertQuery, (insertError, insertResult) => {
+        if (insertError) {
+          console.error('Erro ao cadastrar usuário no banco de dados:', insertError);
+          return res.status(500).json({ message: 'Erro interno' });
+        }
+
+        res.redirect('/login-estabelecimentos');
+      });
+    });
+  });
 
 app.post('/', function(req, res){
     //aqui, devemos pegar os dados passados pelo login e buscar no banco de dados para ver se o usuário e a senha estão certos
@@ -261,4 +373,3 @@ app.post('/local', function(req, res){
 app.listen(3000, function(req, res){
     console.log('Server running on 3000');
 })
-

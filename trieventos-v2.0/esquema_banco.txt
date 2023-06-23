@@ -1,25 +1,39 @@
-create table estabelecimentos(
-	id_estabelecimentos serial primary key,
-	titulo_card varchar(30),
-	texto_card varchar(60),
-	descricao_estabelecimento text
-);
+-- Table: public.estabelecimentos
 
-CREATE TABLE usuarios (
-    id_usuario serial PRIMARY KEY,
-    nome varchar(50),
-    email varchar(50),
-    senha varchar(50),
-	tipo_usuario varchar(20)
-);
+-- DROP TABLE IF EXISTS public.estabelecimentos;
 
-create table usuarios_estabelecimentos(
-	id_usuario_e serial PRIMARY KEY,
-    nome varchar(50),
-    email varchar(50),
-    senha varchar(50),
-	tipo_usuario varchar(20)
-);
+CREATE TABLE IF NOT EXISTS public.estabelecimentos
+(
+    estabelecimento_id integer NOT NULL DEFAULT nextval('estabelecimentos_estabelecimento_id_seq'::regclass),
+    estabelecimento_nome character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    estabelecimento_email character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    estabelecimento_senha text COLLATE pg_catalog."default" NOT NULL,
+    estabelecimento_descricao_card character varying(60) COLLATE pg_catalog."default",
+    estabelecimento_descricao character varying(60) COLLATE pg_catalog."default",
+    tipo_usuario character varying(20) COLLATE pg_catalog."default",
+    CONSTRAINT estabelecimentos_pkey PRIMARY KEY (estabelecimento_id)
+)
 
-select * from usuarios_estabelecimentos
-select * from usuarios
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.estabelecimentos
+    OWNER to postgres;
+
+-- Table: public.usuarios
+
+-- DROP TABLE IF EXISTS public.usuarios;
+
+CREATE TABLE IF NOT EXISTS public.usuarios
+(
+    usuario_id integer NOT NULL DEFAULT nextval('usuarios_usuario_id_seq'::regclass),
+    usuario_nome character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    usuario_email character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    usuario_senha text COLLATE pg_catalog."default" NOT NULL,
+    tipo_usuario character varying(20) COLLATE pg_catalog."default",
+    CONSTRAINT usuarios_pkey PRIMARY KEY (usuario_id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.usuarios
+    OWNER to postgres;
