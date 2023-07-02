@@ -1,0 +1,60 @@
+<%- include('../partials/header') %>
+
+<table>
+  <thead>
+    <tr>
+      <th><h4><span class="badge text-bg-dark">Horário/Dia</span></h4></th>
+      <th><h4><span class="badge text-bg-dark">Domingo</span></h4></th>
+      <th><h4><span class="badge text-bg-dark">Segunda</span></h4></th>
+      <th><h4><span class="badge text-bg-dark">Terça</span></h4></th>
+      <th><h4><span class="badge text-bg-dark">Quarta</span></h4></th>
+      <th><h4><span class="badge text-bg-dark">Quinta</span></h4></th>
+      <th><h4><span class="badge text-bg-dark">Sexta</span></h4></th>
+      <th><h4><span class="badge text-bg-dark">Sábado</span></h4></th>      
+    </tr>
+  </thead>
+  <!-- Aqui, as tds estão acompanhando cada dia, ou seja, cada td é uma célula horizontal, ao total devem ter 7
+  Para cada linha, precisamos fazer uma verificação se ele está disponível ou não, para isso, basta criar uma tabela no banco com
+os horários. Lá, verificamos todos os horários disponíveis e atribuímos ao horarios, verificamos se o atributo disponível == true
+se sim, renderizamos ele como disponível, se não, renderizamos como falso-->
+  <tbody>
+    <% for (let i = 0; i < horarios.length; i++) { %>
+      <tr>
+        <td><h4><span class="badge text-bg-dark"><%= horarios[i][0] %></span></h4></td>
+        <td><h4><span class="badge text-bg-success"><%= horarios[i][1] %></span></h4></td>
+        <td><h4><span class="badge text-bg-success"><%= horarios[i][1] %></span></h4></td>
+        <td><h4><span class="badge text-bg-success"><%= horarios[i][1] %></span></h4></td>
+        <td><h4><span class="badge text-bg-success"><%= horarios[i][1] %></span></h4></td>
+        <td><h4><span class="badge text-bg-success"><%= horarios[i][1] %></span></h4></td>
+        <td><h4><span class="badge text-bg-success"><%= horarios[i][1] %></span></h4></td>
+        <td><h4><span class="badge text-bg-success"><%= horarios[i][1] %></span></h4></td>
+      </tr>
+    <% } %>
+  </tbody>
+</table>
+
+
+<!--
+
+-->
+  <div class="box-parent-login">
+    <div class="box-parent-login">
+        <form role="form" action="/estabelecimentos/<%= nome %>">
+            <fieldset>
+                <input type="submit" value="Voltar" class="btn btn-primary"/>
+            </fieldset>
+        </form>
+    </div>
+</div>
+
+<script>
+  function verificaDisponibilidade(valor){
+    if (valor == 'true'){
+      return '<h4><span class="badge text-bg-success">valor</span></h4></td>';
+    } else {
+      return '<h4><span class="badge text-bg-danger">valor</span></h4></td>';
+    }
+  }
+</script>
+
+<%- include('../partials/footer') %>

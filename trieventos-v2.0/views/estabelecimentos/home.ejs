@@ -1,4 +1,59 @@
-<%- include('../partials/header') %>
+<%- include('../partials/header-estabelecimentos') %>
 
+
+
+<div class="info-estabelecimentos">
+    <div class="info-estabelecimentos-card">
+        #Visualização do usuário
+        <div class="card" style="width: 18rem;">
+            <img src="..\images\carrousel\Post2.jpg" class="card-img-top" alt="...">
+            <div class="card-body">
+              <h5 class="card-title"><%= estabelecimento[0].estabelecimento_nome %></h5>
+              <p class="card-text"><%= estabelecimento[0].estabelecimento_descricao_card %></p>
+            </div>
+        </div>
+    </div>
+    <div class="info-estabelecimentos-alteracoes">
+        #Alterar dados
+        <form id="alterarCard">
+            <div class="mb-3">
+              <label for="alterarEmail" class="form-label">Alterar E-mail</label>
+              <input type="email" name='novoEmail' class="form-control" id="alterarEmail" aria-describedby="emailHelp">
+            </div>
+            <div class="mb-3">
+              <label for="alterarDescricaoCard" class="form-label">Alterar Descrição do Card</label>
+              <input type="text" name='descricaoCard' class="form-control" id="alterarDescricaoCard">
+            </div>
+            <button type="submit" class="btn btn-primary">Alterar</button>
+          </form>
+    </div>
+
+</div>
+
+//FAZER O PATCH DO MILENIO
+<script>
+  document.getElementById('alterarCard').addEventListener('submit', function(event) {
+    event.preventDefault(); // Impede o envio do formulário padrão
+
+    const formData = new FormData(event.target); // Obtém os dados do formulário
+
+    fetch('/estabelecimentocard', {
+      method: 'PATCH',
+      body: new URLSearchParams(formData) // Converte FormData em URLSearchParams
+    })
+    .then(response => {
+      if (response.ok) {
+        console.log('Dados atualizados com sucesso!');
+        // Faça algo em resposta ao sucesso
+      } else {
+        console.error('Falha ao atualizar os dados!');
+        // Faça algo em resposta à falha
+      }
+    })
+    .catch(error => {
+      console.error('Ocorreu um erro:', error);
+    });
+  });
+</script>
 
 <%- include('../partials/footer') %>

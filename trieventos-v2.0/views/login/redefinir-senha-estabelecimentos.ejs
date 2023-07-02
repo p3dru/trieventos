@@ -1,0 +1,57 @@
+<%- include('../login/header-login') %>
+
+<% if (erro && erro != '') { %>
+    <% if (erro == 'E-mail' || erro == 'Senha' || erro == 'Confirmar Senha') { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            Campo <strong>"<%= erro %>"</strong> não preenchido 
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <% } else { %>
+        <% if (erro == 'Diferentes') { %>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>As senhas não coincidem</strong> 
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <% } else { %>
+            <% if (erro == 'Não Encontrado') { %>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                O e-mail informado <strong>não possui cadastro</strong> 
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <% } %>
+        <% } %>
+    <% } %>
+<% } %>
+
+
+<div class="redefinir-senha">   
+    <div class="box-parent-login">
+        <div class="box-parent-login">
+            <form role="form" action="/redefinir-senha-estabelecimentos" method="POST">
+                <fieldset>
+                    <div class="form-group ls-login-user">
+                        <label for="userEmail">E-mail</label>
+                        <input class="form-control ls-login-bg-user input-lg" id="userEmail" name="email" type="email" aria-label="E-mail" placeholder="E-mail">
+                    </div>
+    
+                    <div class="form-group ls-login-user">
+                        <label for="userNewPassword">Senha</label>
+                        <input class="form-control ls-login-bg-user input-lg" id="userNewPassword" name="senha" type="password" aria-label="Senha" placeholder="Senha">
+                    </div>
+    
+                    <div class="form-group ls-login-user">
+                        <label for="retypeUserNewPassword">Confirmar Senha</label>
+                        <input class="form-control ls-login-bg-user input-lg" id="retypeUserNewPassword" name="confirmarSenha" type="password" aria-label="Confirmar Senha" placeholder="Confirmar Senha">
+                    </div>
+        
+    
+                    <input type="submit" value="Alterar Senha" class="btn btn-primary btn-lg btn-block" id="btn-alterar"/>
+                
+                </fieldset>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<%- include('../partials/footer') %>

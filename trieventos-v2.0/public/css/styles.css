@@ -3,6 +3,13 @@
     margin: 1% 5% 1% 5%;
 }
 
+/*alerts*/
+.alert{
+    position: fixed;
+    z-index: 999;
+}
+
+
 body{
     background-color: #FCFFE9;
 }
@@ -138,3 +145,18 @@ body{
     max-width: 400px;
     margin: 0 auto;
 }
+
+
+/*VISÃO ESTABELECIMENTOS*/
+.info-estabelecimentos{
+    display: flex;
+    margin: 4%;
+}
+
+.info-estabelecimentos-card, .info-estabelecimentos-alteracoes{
+    margin-top: 2%;
+    margin-left: 4%;
+    margin-right: 4%;
+    flex: 1;
+}
+

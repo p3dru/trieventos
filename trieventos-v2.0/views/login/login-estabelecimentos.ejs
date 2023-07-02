@@ -1,6 +1,41 @@
 <%- include('header-login') %>
 
 <div class="login-estabelecimentos">
+    <% if (sucesso == 'Enviado') { %>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          Usuário cadastrado com sucesso
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <% } %>
+
+    <% if (sucesso == 'Atualizado') { %>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>Senha Atualizada</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+    <% } %>
+
+    <% if (erro && erro != '') { %>
+        <% if (erro == 'Usuário' || erro == 'Senha') { %>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                Campo <strong>"<%= erro %>"</strong> não preenchido 
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <% } %>
+        <% if (erro == 'Cadastro') { %>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+               Usuário <strong>não possui cadastrado</strong> 
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <% } %>
+        <% if (erro == 'Inválida') { %>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+               <strong>Senha Incorreta</strong> 
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <% } %>
+
+    <% } %>
     <div class="box-parent-login">
         <form class="form-login" role="form" action="/login-estabelecimentos" method="post">
             <fieldset class="dados-login">
@@ -21,7 +56,7 @@
                 <input type="submit" value="Entrar" class="btn btn-primary btn-lg btn-block" id="btn-entrar"/>
                 
                 <div id="operacoes-login">
-                    <a href="/redefinir-senha" class="ls-login-forgot">Esqueci minha senha</a>
+                    <a href="/redefinir-senha/estabelecimentos" class="ls-login-forgot">Esqueci minha senha</a>
                     <br>
                     <a class='po' href="/cadastrar-estabelecimento">Cadastre-se agora</a>
                 </div>

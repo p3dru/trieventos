@@ -12,6 +12,7 @@ const cookieParser = require('cookie-parser');
 
 
 const chave = '3eventsxcz';
+const chaveEstab = 'qw,ckdsl';
 
 const app = express();
 
@@ -26,11 +27,11 @@ app.use(cookieParser());
 
 const pool = new Pool(
     {
-        user: '',
-        password: '',
+        user: 'postgres',
+        password: 'bd_!s_for_d4t4',
         host: 'localhost',
         port: 5432,
-        database: ''
+        database: 'testes_tabelas'
     }
 );
 
@@ -56,7 +57,24 @@ function generateToken(user) {
       return res.redirect('/login');
     }
   }
-  
+
+  function autenthicateTokenEstab(req, res, next){
+    const token = req.cookies.token;
+    //console.log(token);
+
+    if (!token) {
+      return res.redirect('/login');
+    }
+
+    try {
+      const decoded = jwt.verify(token, chaveEstab);
+      req.user = decoded;
+      next();
+    } catch (error) {
+      return res.redirect('/login');
+    }
+  }
+
 
 app.get('/', async (req, res) => {
     //console.log(res.json);
@@ -89,23 +107,48 @@ app.get('/estabelecimentos/:nome_estabelecimento', async (req,res) => {
     try {
         const result = await pool.query(`select * from estabelecimentos where estabelecimento_nome = '${nome}'`);
         const dadosObtidos = result.rows;
-        const titleTag = dadosObtidos[0].titulo_card;
+        const titleTag = dadosObtidos[0].estabelecimento_nome;
         //console.log(titleTag);
         //console.log(dadosObtidos);
         res.render('usuarios-comuns/render-estabelecimentos.ejs', {titleTag: titleTag, estabelecimento: dadosObtidos});
     } catch (error) {
-        console.error('Erron ao buscar dados: ', error);
+        console.error('Erro ao buscar dados: ', error);
         res.sendStatus(500).send('Erro Interno');
     }
     //res.render('estabelecimentos', {titleTag: 'Estabelecimentos'});
 });
 
-app.get('/estabelecimentos/x/horarios', function(req,res){
-    const horas = ['17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00', '00:00'];
-    const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-    const ocupados = [{dia: 'Segunda', hora:'18:00'}, {dia: 'Sexta', hora: '22:00'},
-                    {dia: 'Sábado', hora: '21:00'}, {dia: 'Sábado', hora: '20:00'}];
-    res.render('horarios', { horas, diasSemana, titleTag: 'Horários', ocupados});
+app.get('/estabelecimentos/:nome_estabelecimento/horarios', async (req,res) => {
+    const nome = req.params.nome_estabelecimento;
+
+    try {
+      const result = await pool.query(`select horario_funcionamento, horario_disponibilidade from horarios inner join estabelecimentos
+      on horarios.estabelecimento_id = estabelecimentos.estabelecimento_id where estabelecimento_nome = '${nome}'`);
+      const dadosObtidos = result.rows;
+      var dadosSorted = dadosObtidos.sort();
+      //console.log(dadosObtidos);
+      console.log(dadosObtidos.length);
+      var horarios = [];
+      //console.log(dadosSorted);
+      for (let i = 0; i < dadosObtidos.length; i++){
+        let combo = []
+        combo.push(dadosObtidos[i].horario_funcionamento);
+        combo.push(dadosObtidos[i].horario_disponibilidade);
+        horarios.push(combo);
+      }
+
+      horarios = horarios.sort();
+      
+
+
+      console.log(horarios);
+      const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+      res.render('usuarios-comuns/horarios', {titleTag: 'Horários', dias: dias, horarios: horarios, nome: nome}); 
+    } catch (error) {
+      console.error('Erro ao buscar dados: ', error);
+      res.sendStatus(500).send('Erro Interno');
+    }
+    //Os horários de cada local são definidos pelo estabelecimento, sendo assim, armazenaremos no banco de dados;
 });
 
 //gets-logins
@@ -116,12 +159,112 @@ app.get('/login', function(req, res){
 
 //login de usuário comum
 app.get('/login-locatarios', async(req, res) => {
-    res.render('login/login-usuarios', {titleTag: 'Login'});
+    const erro = '';
+    res.render('login/login-usuarios', {titleTag: 'Login', erro: erro, sucesso: ''});
+});
+
+//redefinir senha usuário comum
+app.get('/locatarios/redefinir-senha', async(req, res) => {
+  res.render('login/redefinir-senha-usuarios', {titleTag: 'Redefinir Senha', erro: 'E-mail', sucesso: ''});
+})
+
+app.post('/redefinir-senha-usuarios', async(req, res) => {
+  const email = req.body.email;
+  const senha = req.body.senha;
+  const confirmarSenha = req.body.confirmarSenha;
+  //console.log(email, senha, confirmarSenha);
+
+  if (!email){
+    return res.render('login/redefinir-senha-usuarios', {titleTag: 'Redefinir Senha', erro: 'E-mail', sucesso: ''});
+  }
+  
+  if (!senha){
+    return res.render('login/redefinir-senha-usuarios', {titleTag: 'Redefinir Senha', erro: 'Senha', sucesso: ''});
+  }
+
+  if (!confirmarSenha) {
+    return res.render('login/redefinir-senha-usuarios', {titleTag: 'Redefinir Senha', erro: 'Confirmar Senha', sucesso: ''});
+  }
+
+  if (senha != confirmarSenha){
+    return res.render('login/redefinir-senha-usuarios', {titleTag: 'Redefinir Senha', erro: 'Diferentes', sucesso: ''});
+  }
+
+  const hashSenha = await bcrypt.hash(senha, 10);
+
+  try{
+    const result = await pool.query(`select * from usuarios where usuario_email = '${email}'`);
+    const dadosObtidos = result.rows;
+    const dados = JSON.stringify(dadosObtidos);
+    
+    if (dados == '[]'){
+      return res.render('login/redefinir-senha-usuarios', {titleTag: 'Redefinir Senha', erro: 'Não Encontrado'});
+    } else {
+      const insertQuery = await pool.query(`update usuarios set usuario_senha = '${hashSenha}' where usuario_email = '${email}'`);
+      return res.render('login/login-usuarios', {titleTag: 'Redefinir Senha', erro: '', sucesso: 'Atualizado'})
+    }
+
+
+  } catch (error) {
+    console.error('Erro ao buscar dados: ', error);
+    res.sendStatus(500).send('Erro Interno');
+  }
+})
+
+//redefinir senha estabelecimentos
+app.get('/redefinir-senha/estabelecimentos', function(req, res){
+  res.render('login/redefinir-senha-estabelecimentos', {titleTag: 'Redefinir Senha', erro: ''});
+});
+
+app.post('/redefinir-senha-estabelecimentos', async(req, res) => {
+  const email = req.body.email;
+  const senha = req.body.senha;
+  const confirmarSenha = req.body.confirmarSenha;
+
+  //console.log(email, senha, confirmarSenha);
+  if (!email){
+    return res.render('login/redefinir-senha-estabelecimentos', {titleTag: 'Redefinir Senha', erro: 'E-mail'});
+  }
+
+  if (!senha){
+    return res.render('login/redefinir-senha-estabelecimentos', {titleTag: 'Redefinir Senha', erro: 'Senha'});
+  }
+
+  if (!confirmarSenha){
+    return res.render('login/redefinir-senha-estabelecimentos', {titleTag: 'Redefinir Senha', erro: 'Confirmar Senha'});
+  }
+
+  if (senha != confirmarSenha){
+    return res.render('login/redefinir-senha-estabelecimentos', {titleTag: 'Redefinir Senha', erro: 'Diferentes'});
+  }
+
+  const hashSenha = await bcrypt.hash(senha, 10);
+
+  try{
+    const result = await pool.query(`select * from estabelecimentos where estabelecimento_email = '${email}'`);
+    const dadosObtidos = result.rows;
+    const dados = JSON.stringify(dadosObtidos);
+
+    //console.log(dadosObtidos);
+    //console.log(dados);
+    
+    if (dados == '[]'){
+      return res.render('login/redefinir-senha-estabelecimentos', {titleTag: 'Redefinir Senha', erro: 'Não Encontrado'});
+    } else {
+      const insertQuery = await pool.query(`update estabelecimentos set estabelecimento_senha = '${hashSenha}' where estabelecimento_email = '${email}'`);
+      return res.render('login/login-estabelecimentos', {titleTag: 'Redefinir Senha', erro: '', sucesso: 'Atualizado'})
+    }
+
+  } catch(error){
+    console.error('Erro ao buscar dados: ', error);
+    res.sendStatus(500).send('Erro Interno');
+  }
+
 });
 
 //login de estabelecimentos
 app.get('/login-estabelecimentos', async(req, res) => {
-    res.render('login/login-estabelecimentos', {titleTag: 'Estabelecimentos'})
+    res.render('login/login-estabelecimentos', {titleTag: 'Estabelecimentos', erro: '', sucesso: ''});
 
 });
 
@@ -131,11 +274,11 @@ app.get('/perfil', authenticateToken, function(req, res){
 });
 
 app.get('/cadastrar-usuario', function(req, res){
-    res.render('cadastro-usuario', {titleTag: 'Cadastrar Usuário'});
+    res.render('cadastro-usuario', {titleTag: 'Cadastrar Usuário', erro: '', sucesso: ''});
 });
 
 app.get('/cadastrar-estabelecimento', function(req, res){
-    res.render('estabelecimentos/cadastro-estabelecimentos.ejs', {titleTag: 'Cadastrar Estabelecimento'});
+    res.render('estabelecimentos/cadastro-estabelecimentos.ejs', {titleTag: 'Cadastrar Estabelecimento', erro: '', sucesso: ''});
 })
 
 app.get('/redefinir-senha', function(req, res){
@@ -150,26 +293,32 @@ app.get('/x/locacoes', authenticateToken, function(req, res){
     res.render('locacoes', {titleTag: 'Histórico de Locações'});
 })
 
+
+
 // Posts
-app.post('/login-locatario', async (req, res) => {
-    const nome = req.body.nome;
+app.post('/login-locatarios', async (req, res) => {
+    const email = req.body.nome;
     const senha = req.body.senha;
 
-    if(!nome){
-        return res.status(400).json({ message: 'Campo "Usuário" não preenchido' });
+    if(!email){
+        const erro = 'Usuário';
+        return res.render('login/login-usuarios', {titleTag: 'Login', erro: erro, sucesso: ''});
+        //return res.status(400).json({ message: 'Campo "Usuário" não preenchido' });
     }
 
     if(!senha){
-        return res.status(400).json({ message: 'Campo "Senha" não preenchido' });
+      const erro = 'Senha';
+        return res.render('login/login-usuarios', {titleTag: 'Login', erro: erro, sucesso: ''});
     }
     
 
     try {
-      const result = await pool.query(`SELECT * FROM usuarios WHERE usuario_nome = '${nome}'`);
+      const result = await pool.query(`SELECT * FROM usuarios WHERE usuario_email = '${email}'`);
       const user = result.rows[0];
 
       if (user === undefined){
-        return res.status(404).json({message: 'Usuário não possui cadastro'})
+        const erro = 'Cadastro'
+        return res.render('login/login-usuarios', {titleTag: 'Login', erro: erro, sucesso: ''});
       }
 
 
@@ -181,11 +330,13 @@ app.post('/login-locatario', async (req, res) => {
       const compararSenha = await bcrypt.compare(senha, user.usuario_senha);
 
       if (compararSenha === false) {
-        return res.status(401).json({ message: 'Credenciais Inválidas' });
+        const erro = 'Inválida';
+        return res.render('login/login-usuarios', {titleTag: 'Login', erro: erro, sucesso: ''});
       }
   
       const token = jwt.sign({ id: user.usuario_id, tipo: 'usuario' }, chave, {expiresIn: 1800});
-
+      const infos = [user.usuario_id, user.usuario_nome];
+      res.cookie('infos', infos, { maxAge: 1800000, httpOnly: true});
       res.cookie('token', token, { maxAge: 1800000, httpOnly: true});
       //res.json({auth: true, token });
       //console.log(token);
@@ -201,31 +352,49 @@ app.post('/login-locatario', async (req, res) => {
 //gets de estabelecimentos
 
 app.post('/login-estabelecimentos', async (req, res) => {
-  const nome = req.body.nome;
+  const email = req.body.nome;
   const senha = req.body.senha;
 
+  if(!email){
+    const erro = 'Usuário';
+    return res.render('login/login-estabelecimentos', {titleTag: 'Estabelecimentos', erro: erro, sucesso: ''});
+    //return res.status(400).json({ message: 'Campo "Usuário" não preenchido' });
+  }
+
+  if(!senha){
+    const erro = 'Senha';
+    return res.render('login/login-estabelecimentos', {titleTag: 'Estabelecimentos', erro: erro, sucesso: ''});
+  }
+
   try {
-    const result = await pool.query(`SELECT * FROM estabelecimentos WHERE estabelecimento_nome = '${nome}'`);
+    const result = await pool.query(`SELECT * FROM estabelecimentos WHERE estabelecimento_email = '${email}'`);
     const estabelecimento = result.rows[0];
+    //console.log(estabelecimento);
+    
 
-    if (estabelecimento === undefined){
-        return res.status(404).json({message: 'Estabelecimento não possui cadastro'})
-      }
-
-    if (!estabelecimento) {
-      return res.status(401).json({ message: 'Credenciais Inválidas' });
+    if (estabelecimento === undefined || estabelecimento.length == 0){
+      const erro = 'Cadastro';
+      return res.render('login/login-estabelecimentos', {titleTag: 'Estabelecimentos', erro: erro, sucesso: ''});
     }
 
-    const match = await bcrypt.compare(senha, estabelecimento.estabelecimento_senha);
+    const estabelecimentoNome = estabelecimento.estabelecimento_nome;
 
-    if (match) {
-      const token = jwt.sign({ id: user.usuario_id, tipo: 'usuario' }, chave, {expiresIn: 1800});
+    const compararSenha = await bcrypt.compare(senha, estabelecimento.estabelecimento_senha);
 
-      res.cookie('token', token, { maxAge: 1800000, httpOnly: true});
-      res.redirect('/local');
-    } else {
-      return res.status(401).json({ message: 'Credenciais Inválidas' });
+    if (compararSenha === false) {
+      const erro = 'Inválida';
+      return res.render('login/login-estabelecimentos', {titleTag: 'Estabelecimentos', erro: erro, sucesso: ''});
     }
+
+    const token = jwt.sign({id: estabelecimento.estabelecimento_id, tipo: 'estabelecimento'}, chaveEstab, {expiresIn: 1800});
+    const infos = [estabelecimento.estabelecimento_id, estabelecimento.estabelecimento_nome,
+      estabelecimento.estabelecimento_descricao_card];
+    res.cookie('infos', infos, { maxAge: 1800000, httpOnly: true});
+    res.cookie('token', token, { maxAge: 1800000, httpOnly: true});
+
+      
+    res.redirect(`/estabelecimento/${estabelecimentoNome}`);
+
   } catch (error) {
     console.error('Erro ao autentificar estabelecimento', error);
     res.sendStatus(500);
@@ -233,9 +402,23 @@ app.post('/login-estabelecimentos', async (req, res) => {
 });
 
 //tela inicial dos estabelecimentos
-app.get('/local', function(req, res){
+app.get('/estabelecimento/:nome', autenthicateTokenEstab, async (req, res) => {
+    const nome = req.params.nome;
+    
+    try {
+      const result = await pool.query(`select * from estabelecimentos where estabelecimento_nome = '${nome}'`);
+      const dadosObtidos = result.rows;
+      const titleTag = dadosObtidos[0].estabelecimento_nome;
+      //console.log(titleTag);
+      console.log(dadosObtidos);
+      res.render('estabelecimentos/home', {titleTag: titleTag, estabelecimento: dadosObtidos, aviso: ''});
+    } catch (error) {
+        console.error('Erron ao buscar dados: ', error);
+        res.sendStatus(500).send('Erro Interno');
+    }
+
     //trocar o local para pegar o usuário pelo parâmetro
-    res.render('estabelecimentos/home', {titleTag: 'Home'});
+    //res.render('/', {titleTag: 'Home'});
 })
 
 //posts
@@ -249,28 +432,33 @@ app.post('/cadastrar-usuario', async (req, res) => {
     
     // Verificar se todos os campos foram preenchidos
     if (!nome) {
-      return res.status(400).json({ message: 'Campo "Nome de usuário" não preenchido' });
+      const erro = 'Nome';
+      return res.render('cadastro-usuario', {titleTag: 'Cadastrar Usuário', erro: erro, sucesso: ''});
     }
 
     if (!email) {
-        return res.status(400).json({ message: 'Campo "E-mail" não preenchido' });
+      const erro = 'E-mail';
+      return res.render('cadastro-usuario', {titleTag: 'Cadastrar Usuário', erro: erro, sucesso: ''});
     }
 
     if (!senha) {
-        return res.status(400).json({ message: 'Campo "Senha" não preenchido' });
+      const erro = "Senha";
+      return res.render('cadastro-usuario', {titleTag: 'Cadastrar Usuário', erro: erro, sucesso: ''});
     }
     if (!confirmarSenha) {
-        return res.status(400).json({ message: 'Campo "Confirmar Senha" não preenchido' });
+      const erro = 'Confirmar Senha';
+      return res.render('cadastro-usuario', {titleTag: 'Cadastrar Usuário', erro: erro, sucesso: ''});
     }
     // Verificar se a senha e a confirmação de senha são iguais
     if (senha !== confirmarSenha) {
-      return res.status(400).json({ message: 'A senha e a confirmação de senha não correspondem' });
+      const erro = 'Não confere';
+      return res.render('cadastro-usuario', {titleTag: 'Cadastrar Usuário', erro: erro, sucesso: ''});
     }
   
     const hashSenha = await bcrypt.hash(senha, 10);
 
     // Verificar se o usuário já está cadastrado (exemplo com consulta no banco de dados)
-    const query = `SELECT * FROM usuarios WHERE usuario_nome = '${nome}'`;
+    const query = `SELECT * FROM usuarios WHERE usuario_email = '${email}'`;
   
     pool.query(query, (error, result) => {
       if (error) {
@@ -279,7 +467,9 @@ app.post('/cadastrar-usuario', async (req, res) => {
       }
   
       if (result.rows.length > 0) {
-        return res.status(400).json({ message: 'Usuário já cadastrado' });
+        const erro = 'Já Cadastrado';
+        return res.render('cadastro-usuario', {titleTag: 'Cadastrar Usuário', erro: erro, aviso: ''});
+        //return res.status(400).json({ message: 'Usuário já cadastrado' });
       }
   
       // Cadastrar o usuário (exemplo com inserção no banco de dados)
@@ -291,8 +481,9 @@ app.post('/cadastrar-usuario', async (req, res) => {
           console.error('Erro ao cadastrar usuário no banco de dados:', insertError);
           return res.status(500).json({ message: 'Erro interno' });
         }
-  
-        res.status(200).json({ message: 'Usuário cadastrado com sucesso' });
+
+        //CRIAR UM MODELO QUE POSSA ENVIAR A MENSAGEM DE CADASTRO ENVIADO COM SUCESSO E A TELA DE LOGIN (FEITO)
+        return res.render('login/login-usuarios', {titleTag: 'Login', erro: '', sucesso: 'Enviado'});
       });
     });
   });
@@ -303,37 +494,34 @@ app.post('/cadastrar-usuario', async (req, res) => {
     const senha = req.body.senha;
     const confirmarSenha = req.body.confirmarSenha;
 
+
+
     //console.log(nome, email, senha, confirmarSenha)
     
     // Verificar se todos os campos foram preenchidos
     if (!nome) {
-      return res.status(400).json({ message: 'Campo "Nome de usuário" não preenchido' });
+      return res.render('estabelecimentos/cadastro-estabelecimentos', {titleTag: 'Cadastrar Estabelecimento', erro: 'Nome', sucesso: ''});
     }
 
     if (!email) {
-        return res.status(400).json({ message: 'Campo "E-mail" não preenchido' });
+      return res.render('estabelecimentos/cadastro-estabelecimentos', {titleTag: 'Cadastrar Estabelecimento', erro: 'E-mail', sucesso: ''});
     }
 
     if (!senha) {
-        return res.status(400).json({ message: 'Campo "Senha" não preenchido' });
+      return res.render('estabelecimentos/cadastro-estabelecimentos', {titleTag: 'Cadastrar Estabelecimento', erro: 'Senha', sucesso: ''});
     }
     if (!confirmarSenha) {
-        return res.status(400).json({ message: 'Campo "Confirmar Senha" não preenchido' });
+      return res.render('estabelecimentos/cadastro-estabelecimentos', {titleTag: 'Cadastrar Estabelecimento', erro: 'Confirmar Senha', sucesso: ''});
     }
     // Verificar se a senha e a confirmação de senha são iguais
     if (senha !== confirmarSenha) {
-      return res.status(400).json({ message: 'A senha e a confirmação de senha não correspondem' });
+      return res.render('estabelecimentos/cadastro-estabelecimentos', {titleTag: 'Cadastrar Estabelecimento', erro: 'Não Confere', sucesso: ''});
     }
   
     const hashSenha = await bcrypt.hash(senha, 10);
 
-    // Verificar se a senha e a confirmação de senha são iguais
-    if (senha !== confirmarSenha) {
-      return res.status(400).json({ message: 'A senha e a confirmação de senha não correspondem' });
-    }
-
     // Verificar se o estabelecimento já está cadastrado
-    const query = `SELECT * FROM estabelecimentos WHERE estabelecimento_nome = '${nome}'`;
+    const query = `SELECT * FROM estabelecimentos WHERE estabelecimento_email = '${email}'`;
 
     pool.query(query, (error, result) => {
       if (error) {
@@ -342,7 +530,7 @@ app.post('/cadastrar-usuario', async (req, res) => {
       }
 
       if (result.rows.length > 0) {
-        return res.status(400).json({ message: 'Estabelecimento já cadastrado' });
+        return res.render('estabelecimentos/cadastro-estabelecimentos', {titleTag: 'Cadastrar Estabelecimento', erro: 'Já Cadastrado', sucesso: ''});
       }
 
       const insertQuery = `INSERT INTO estabelecimentos (estabelecimento_nome, estabelecimento_email, estabelecimento_senha, tipo_usuario) VALUES ('${nome}', '${email}', '${hashSenha}', 'estabelecimentos')`;
@@ -354,7 +542,7 @@ app.post('/cadastrar-usuario', async (req, res) => {
           return res.status(500).json({ message: 'Erro interno' });
         }
 
-        res.redirect('/login-estabelecimentos');
+        res.render('login/login-estabelecimentos', {titleTag: 'Cadastrar Estabelecimento', erro: '', sucesso: 'Enviado'});
       });
     });
   });
@@ -364,6 +552,48 @@ app.post('/', function(req, res){
     //se tiver tudo certo: redireciona para a tela home, se não, exibe uma mensagem de erro e permanece na tela de login
     res.redirect('/');
 })
+
+//PATCHES
+app.patch('/estabelecimentocard', (req, res) => {
+  const dadosAtualizados = req.body;
+  const token = req.cookies.token;
+  const infos = req.cookies.infos;
+  console.log(dadosAtualizados);
+  //console.log(token);
+  console.log('Essas são as informações: ',  infos);
+  
+  var query = '';
+
+  if (dadosAtualizados.novoEmail != '' && dadosAtualizados.descricaoCard != ''){
+    query = `update estabelecimentos set estabelecimento_email = ${dadosAtualizados.novoEmail},
+      estabelecimento_descricao_card = ${dadosAtualizados.descricaoCard} where estabelecimento_id = ${infos[0]}`;
+  } else {
+    if (dadosAtualizados.novoEmail != '' && dadosAtualizados.descricaoCard == ''){
+      query = `update estabelecimentos set estabelecimento_email = ${dadosAtualizados.novoEmail}
+      where estabelecimento_id = ${infos[0]}`;
+    } else {
+      if (dadosAtualizados.novoEmail == '' && dadosAtualizados.descricaoCard != ''){
+        query = `update estabelecimentos set estabelecimento_descricao_card = ${dadosAtualizados.descricaoCard}
+        where estabelecimento_id = ${infos[0]}`;
+      }
+    }
+  }
+
+  console.log('Essa é a query: ', query);
+
+  //SE A QUERY ESTIVER VAZIA, APENAS LANÇA UM ALERT
+  //Se não, faz a alteração e informa ao usuário com o Alert 
+
+  /*try{
+    
+
+    
+  }
+  catch(error){
+    console.error('Erron ao buscar dados: ', error);
+    res.sendStatus(500).send('Erro Interno');
+  }*/
+});
 
 app.post('/local', function(req, res){
     //aqui devemos pegar as informações de login e buscar no banco de dados

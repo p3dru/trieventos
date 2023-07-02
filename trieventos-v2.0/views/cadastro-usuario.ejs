@@ -1,4 +1,25 @@
 <%- include('login/header-login') %>
+<% if (erro && erro != '') { %>
+  <% if (erro == 'Nome' || erro == 'Senha' || erro == 'E-mail' || erro == 'Confirmar Senha') { %>
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          Campo <strong>"<%= erro %>"</strong> não preenchido 
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+  <% } %>
+  <% if (erro == 'Não Confere') { %>
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        As senhas <strong>não conferem</strong> 
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+  <% } %>
+  <% if (erro == 'Já Cadastrado') { %>
+      <div class="alert alert-warning alert-dismissible fade show" role="alert">
+         Usuário <strong>já cadastrado</strong> 
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+  <% } %>
+
+<% } %>
 
 <div class="cadastro">
   <form action="/cadastrar-usuario" method="post">
