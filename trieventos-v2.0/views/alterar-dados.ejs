@@ -1,0 +1,35 @@
+<%- include('partials/header') %>
+
+<h1>Alterar Dados</h1>
+<div class="login-usuarios">
+    <div class="box-parent-login">
+        <form class="form-login" role="form" action="/alterar-dados" method="POST">
+            <fieldset class="dados-login">
+                <div id="dados-login">
+                    <div class="form-group ls-login-user">
+                        <label for="nome">Nome:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control ls-login-bg-user" name="nome" id="nome" required>
+                            <div class="input-group-append">
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group ls-login-email">
+                        <label for="email">Email:</label>
+                        <div class="input-group">
+                            <input type="email" class="form-control ls-login-bg-email" name="email" id="email" required>
+                            <div class="input-group-append">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg btn-block">Alterar Dados</button>
+            </fieldset>
+        
+    </div>
+</div>
+
+
+<%- include('partials/footer') %>
