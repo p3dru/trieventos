@@ -1,0 +1,85 @@
+<%- include('../partials/header-estabelecimentos') %>
+
+<% if (sucesso == 'Atualizado') { %>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <strong>Senha Atualizada</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+<% } %>
+  
+<% if (erro && erro != '') { %>
+    <% if (erro == 'E-mail' || erro == 'Senha' || erro == 'Confirmar Senha') { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            Campo <strong>"<%= erro %>"</strong> não preenchido 
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <% } %>
+    <% if (erro == 'Diferentes') { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            As senhas <strong>não conferem</strong> 
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+    <% } %>
+<% } %>
+
+<div class="alterar-perfil-geral">
+    <div class="box-parent-login">
+        <div class="box-parent-login">
+            <form role="form" action="/gerenciar-estabelecimento" method="POST">
+                <div class="info-estabelecimentos">
+                    <fieldset class="dados-texto">
+                        <div class="estabelecimento-dados-texto">
+                            <div class="form-group ls-login-user">
+                                <label for="userEmail">E-mail</label>
+                                <input class="form-control ls-login-bg-user input-lg" id="userEmail" name="email" type="email" aria-label="E-mail" placeholder="Novo E-mail">
+                            </div>
+    
+                            <div class="form-group ls-login-user">
+                                <label for="userNewPassword">Senha</label>
+                                <input class="form-control ls-login-bg-user input-lg" id="userNewPassword" name="senha" type="password" aria-label="Senha" placeholder="Nova Senha">
+                            </div>
+    
+                            <div class="form-group ls-login-user">
+                                <label for="retypeUserNewPassword">Confirmar Senha</label>
+                                <input class="form-control ls-login-bg-user input-lg" id="retypeUserNewPassword" name="confirmarSenha" type="password" aria-label="Confirmar Senha" placeholder="Confirmar Senha">
+                            </div> 
+                        </div>
+
+                    </fieldset>
+
+                    <fieldset class="dados-card">
+                        <div class="estabelecimento-dados-card">
+                            <div class="form-group ls-login-user">
+                                <label for="descricaoCard">Descrição do Card</label>
+                                <input class="form-control ls-login-bg-user input-lg" id="descricaoCard" name="decricaoCard" type="text" aria-label="Descrição Card" placeholder="Limitado a 60 caracteres" maxlength="60">
+                            </div>
+    
+                            <div class="mb-3">
+                                <label for="uploadFoto" class="form-label">Escolher foto de Capa do card</label>
+                                <input class="form-control" type="file" id="uploadFoto">
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="dados-gerais">
+                        <div class="estabelecimentos-infos-gerais">
+                            <div class="form-group ls-login-user">
+                                <label for="descricaoGeral">Descrição Geral</label>
+                                <textarea class="form-control" id="descricaoGeral" rows="3"></textarea>
+                            </div>
+    
+                            <div class="mb-3">
+                                <label for="fotosLocal" class="form-label">Escolher fotos do local</label>
+                                <input class="form-control" type="file" id="fotosLocal" multiple>
+                            </div>
+                        </div>
+                    </fieldset>
+                    
+                </div>
+                <input type="submit" value="Alterar Dados" class="btn btn-primary btn-lg btn-block" id="btn-alterar"/>
+            </form>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

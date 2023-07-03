@@ -13,6 +13,7 @@ const cookieParser = require('cookie-parser');
 
 const chave = '3eventsxcz';
 const chaveEstab = 'qw,ckdsl';
+const chaveAdm = 'ccmsdcdsmcmdklsmdklscldm,.mh';
 
 const app = express();
 
@@ -72,6 +73,23 @@ function generateToken(user) {
       next();
     } catch (error) {
       return res.redirect('/login');
+    }
+  }
+
+  function authenticateTokenAdm(req, res, next){
+    const token = req.cookies.token;
+    //console.log(token);
+
+    if (!token) {
+      return res.redirect('/administracao');
+    }
+
+    try {
+      const decoded = jwt.verify(token, chaveAdm);
+      req.user = decoded;
+      next();
+    } catch (error) {
+      return res.redirect('/administracao');
     }
   }
 
@@ -285,15 +303,113 @@ app.get('/redefinir-senha', function(req, res){
     res.render('redefinir-senha', {titleTag: 'Redefinir Senha'});
 })
 
-app.get('/x/gerenciar', authenticateToken, function(req, res){
-    res.render('alterar-perfil', {titleTag: 'Alterar Perfil'});
+//gerenciar perfil
+app.get('/usuario/gerenciar', authenticateToken, function(req, res){
+    const infos = req.cookies.infos;
+    //const nome_usuario = req.params.locatario;
+    //console.log(infos)
+    res.render('alterar-perfil', {titleTag: 'Alterar Perfil', sucesso: '', erro: ''});
+})
+
+app.post('/usuario/gerenciar', authenticateToken, async(req, res) => {
+  const infos = req.cookies.infos;
+  const email = req.body.email;
+  const senha = req.body.senha;
+  const confirmarSenha = req.body.confirmarSenha;
+  console.log(infos);
+  console.log(email, senha, confirmarSenha);
+
+  console.log(typeof(email), typeof(senha), typeof(confirmarSenha));
+
+  if (!email){
+    if (!senha){
+      return res.render('alterar-perfil', {titleTag:'Alterar Perfil', sucesso:'Nada', erro: ''});
+    } else {
+      if (senha != confirmarSenha){
+        return res.render('alterar-perfil', {titleTag:'Alterar Perfil', sucesso:'', erro: 'Diferentes'});
+      } else {
+
+        const hashSenha = await bcrypt.hash(senha, 10);
+
+        try {
+          const result = await pool.query(`select * from usuarios where usuario_id = '${infos[0]}'`);
+          const dadosObtidos = result.rows;
+          console.log(dadosObtidos);
+          if (dadosObtidos.length > 0){
+            const updateQuery = await pool.query(`update usuarios set usuario_senha = '${hashSenha}' where usuario_id = '${infos[0]}'`);
+          }
+
+          return res.render('alterar-perfil', {titleTag:'Alterar Perfil', sucesso:'Atualizado Senha', erro: ''});
+        } catch(error){
+          console.error('Erro ao buscar dados: ', error);
+          res.sendStatus(500).send('Erro Interno');
+        }
+      }
+    }
+  } else {
+    if (!senha) {
+      try {
+        const result = await pool.query(`select * from usuarios where usuario_id = '${infos[0]}'`);
+        const dadosObtidos = result.rows;
+        
+        if(dadosObtidos.length > 0){
+          const updateQuery = await pool.query(`update usuarios set usuario_email = '${email}' where usuario_id = '${infos[0]}'`);
+        }
+
+        return res.render('alterar-perfil', {titleTag:'Alterar Perfil', sucesso:'Atualizado Email', erro: ''});
+      } catch(error){
+        console.error('Erro ao buscar dados: ', error);
+        res.sendStatus(500).send('Erro Interno');
+      }
+    } else {
+      if (senha != confirmarSenha){
+        return res.render('alterar-perfil', {titleTag:'Alterar Perfil', sucesso:'', erro: 'Diferentes'});
+      } else {
+        const hashSenha = await bcrypt.hash(senha, 10);
+
+        try{
+          const result = await pool.query(`select * from usuarios where usuario_id = '${infos[0]}'`);
+          const dadosObtidos = result.rows;
+
+          if (dadosObtidos.length > 0){
+            const updateQuery = await pool.query(`update usuarios set usuario_email = '${email}', usuario_senha = '${hashSenha}' where
+            usuario_id = '${infos[0]}'`);
+          }
+
+          return res.render('alterar-perfil', {titleTag: 'Alterar Perfil', sucesso:'Atualizado', erro:''});
+
+        } catch(error){
+          console.error('Erro ao buscar dados: ', error);
+          res.sendStatus(500).send('Erro Interno');
+        }
+      }
+    }
+  }
 })
 
 app.get('/x/locacoes', authenticateToken, function(req, res){
     res.render('locacoes', {titleTag: 'Histórico de Locações'});
 })
 
+app.get('/gerenciar-estabelecimento', autenthicateTokenEstab, function(req, res){
+  const infos = req.cookies.infos;
+  console.log(infos);
+  res.render('estabelecimentos/alterar-perfil-estabelecimentos', {titleTag: 'Alterar Perfil', erro: '', sucesso: ''});
 
+})
+
+app.post('/gerenciar-estabelecimento', autenthicateTokenEstab, async(req, res) => {
+  //console.log('oi')
+  const infos = req.cookies.infos;
+  //console.log(infos);
+  const email = req.body.email;
+  const senha = req.body.senha;
+  const confirmarSenha = req.body.confirmarSenha;
+
+  //console.log(email, senha, confirmarSenha);
+
+
+});
 
 // Posts
 app.post('/login-locatarios', async (req, res) => {
@@ -599,6 +715,164 @@ app.post('/local', function(req, res){
     //aqui devemos pegar as informações de login e buscar no banco de dados
     res.redirect('/local');
 })
+
+//adm
+app.get('/administracao', function(req, res){
+  res.render('login/login-adm', {titleTag: 'Administração', erro: '', sucesso: ''});
+});
+
+app.post('/login-adm', async(req, res) => {
+  const email = req.body.nome;
+  const senha = req.body.senha;
+
+  //console.log(email, senha);
+
+  if(!email){
+    const erro = 'Usuário';
+    return res.render('login/login-adm', {titleTag: 'Administração', erro: erro, sucesso: ''});
+    //return res.status(400).json({ message: 'Campo "Usuário" não preenchido' });
+  }
+
+  if(!senha){
+    const erro = 'Senha';
+    return res.render('login/login-adm', {titleTag: 'Administração', erro: erro, sucesso: ''});
+  }
+
+  try {
+    const result = await pool.query(`SELECT * FROM adm WHERE adm_email = '${email}'`);
+    const adm = result.rows[0];
+    //console.log(dadosObtidos);
+    
+
+    if (adm === undefined || adm.length == 0){
+      const erro = 'Cadastro';
+      return res.render('login/login-adm', {titleTag: 'Administração', erro: erro, sucesso: ''});
+    }
+
+    const admNome = adm.adm_nome;
+
+    const compararSenha = await bcrypt.compare(senha, adm.adm_senha);
+
+    if (compararSenha === false && senha != adm.adm_senha) {
+      const erro = 'Inválida';
+      return res.render('login/login-adm', {titleTag: 'Administração', erro: erro, sucesso: ''});
+    }
+
+    const token = jwt.sign({id: adm.adm_id, tipo: 'adm'}, chaveAdm, {expiresIn: 1800});
+    const infos = [adm.adm_id, adm.adm_nome, adm.adm_email];
+    res.cookie('infos', infos, { maxAge: 1800000, httpOnly: true});
+    res.cookie('token', token, { maxAge: 1800000, httpOnly: true});
+
+      
+    res.redirect(`/adm/home`);
+
+  } catch (error) {
+    console.error('Erro ao autentificar estabelecimento', error);
+    res.sendStatus(500);
+  }
+  
+})
+
+app.get('/adm/redefinir-senha', function(req, res){
+  res.render('login/redefinir-senha-adm', {titleTag: 'Redefinir Senha', erro: '', sucesso: ''});
+});
+
+app.post('/redefinir-senha-adm', async(req, res) => {
+  const infos = req.cookies.infos;
+  console.log(infos);
+  const email = req.body.email;
+  const senha = req.body.senha;
+  const confirmarSenha = req.body.confirmarSenha;
+
+  //console.log(email, senha, confirmarSenha);
+  if (!email){
+    if (!senha){
+      return res.render('login/redefinir-senha-adm', {titleTag:'Redefinir Senha', sucesso:'Nada', erro: ''});
+    } else {
+      if (senha != confirmarSenha){
+        return res.render('login/redefinir-senha-adm', {titleTag:'Redefinir Senha', sucesso:'', erro: 'Diferentes'});
+      } else {
+
+        const hashSenha = await bcrypt.hash(senha, 10);
+
+        try {
+          const result = await pool.query(`select * from adm where adm_id = '${infos[0]}'`);
+          const dadosObtidos = result.rows;
+          console.log(dadosObtidos);
+          if (dadosObtidos.length > 0){
+            const updateQuery = await pool.query(`update adm set adm_senha = '${hashSenha}' where adm_id = '${infos[0]}'`);
+          }
+
+          return res.render('login/redefinir-senha-adm', {titleTag:'Redefinir Senha', sucesso:'Atualizado Senha', erro: ''});
+        } catch(error){
+          console.error('Erro ao buscar dados: ', error);
+          res.sendStatus(500).send('Erro Interno');
+        }
+      }
+    }
+  } else {
+    if (!senha) {
+      try {
+        const result = await pool.query(`select * from adm where adm_id = '${infos[0]}'`);
+        const dadosObtidos = result.rows;
+        
+        if(dadosObtidos.length > 0){
+          const updateQuery = await pool.query(`update adm set adm_email = '${email}' where adm_id = '${infos[0]}'`);
+        }
+
+        return res.render('login/redefinir-senha-adm', {titleTag:'Redefinir Senha', sucesso:'Atualizado Email', erro: ''});
+      } catch(error){
+        console.error('Erro ao buscar dados: ', error);
+        res.sendStatus(500).send('Erro Interno');
+      }
+    } else {
+      if (senha != confirmarSenha){
+        return res.render('login/redefinir-senha-adm', {titleTag:'Redefinir Senha', sucesso:'', erro: 'Diferentes'});
+      } else {
+        const hashSenha = await bcrypt.hash(senha, 10);
+
+        try{
+          const result = await pool.query(`select * from adm where adm_id = '${infos[0]}'`);
+          const dadosObtidos = result.rows;
+
+          if (dadosObtidos.length > 0){
+            const updateQuery = await pool.query(`update adm set adm_email = '${email}', adm_senha = '${hashSenha}' where
+            adm_id = '${infos[0]}'`);
+          }
+
+          return res.render('login/redefinir-senha-adm', {titleTag: 'Redefinir Senha', sucesso:'Atualizado', erro:''});
+
+        } catch(error){
+          console.error('Erro ao buscar dados: ', error);
+          res.sendStatus(500).send('Erro Interno');
+        }
+      }
+    }
+  }
+})
+
+app.get('/adm/home', authenticateTokenAdm, async (req, res) => {
+  const infos = req.cookies.infos;
+  console.log(infos);
+
+  try{
+    const resultEstab = await pool.query(`select * from estabelecimentos`);
+    const estabelecimentosObtidos = resultEstab.rows;
+
+    const resultUsuario = await pool.query(`select * from usuarios`);
+    const usuariosObtidos = resultUsuario.rows;
+
+    console.log(estabelecimentosObtidos);
+    //console.log();
+    console.log(usuariosObtidos);
+    res.render('adm/inicial', {titleTag: 'Home', estabelecimentos: estabelecimentosObtidos, usuarios: usuariosObtidos});
+
+  } catch(error){
+    console.error('Erro ao buscar dados: ', error);
+    res.sendStatus(500).send('Erro Interno');
+  }
+});
+
 
 app.listen(3000, function(req, res){
     console.log('Server running on 3000');

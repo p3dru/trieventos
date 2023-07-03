@@ -38,9 +38,13 @@ body{
     padding-bottom: 0%;
 }
 
-.dados-login, .redefinir-senha, .cadastro{
+.dados-login, .redefinir-senha, .cadastro, .alterar-perfil{
     /*localde inserção dos dados*/
     padding: 8% 25% 18% 25%;
+}
+
+.alterar-perfil{
+    padding-bottom: 8.5%;
 }
 
 /*página de redefinição de senha*/
@@ -148,15 +152,22 @@ body{
 
 
 /*VISÃO ESTABELECIMENTOS*/
-.info-estabelecimentos{
+.info-estabelecimentos, .info-adm, .info-usuarios{
     display: flex;
     margin: 4%;
 }
 
-.info-estabelecimentos-card, .info-estabelecimentos-alteracoes{
+.info-estabelecimentos-card, .info-estabelecimentos-alteracoes, .info-adm{
     margin-top: 2%;
     margin-left: 4%;
     margin-right: 4%;
     flex: 1;
 }
+
+
+.dados-texto, .dados-card, .dados-gerais{
+    margin: 4% auto -2% auto;
+}
+
+
 

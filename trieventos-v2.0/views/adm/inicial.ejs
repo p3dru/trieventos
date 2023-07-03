@@ -1,0 +1,51 @@
+<%- include('../partials/header-adm') %>
+
+<div class="info-adm container-fluid">
+    <div class="usuarios">
+        <div class="card">
+            <div class="card-body">
+              Usuários Cadastrados: <%= usuarios.length %>
+            </div>
+        </div>
+
+        <div class="card" style="width: 18rem;">
+            <ul class="list-group list-group-flush">
+                <% for(let i = 0; i < usuarios.length; i++){ %>
+                    <li class="list-group-item">
+                        Nome de usuário: <%= usuarios[i].usuario_nome %>
+                        <br>
+                        Email cadastrado: <%= usuarios[i].usuario_email%>
+                    </li>
+                <% } %>
+              
+            </ul>
+        </div>
+    </div>
+
+    <div class="estabelecimentos">
+        <div class="card">
+            <div class="card-body">
+              Estabelecimentos Cadastrados: <%= estabelecimentos.length %>
+            </div>
+        </div>
+
+        <div class="card" style="width: 18rem;">
+            <ul class="list-group list-group-flush">
+                <% for(let i = 0; i < estabelecimentos.length; i++){ %>
+                    <li class="list-group-item">
+                        Nome do estabelecimento: <%= estabelecimentos[i].estabelecimento_nome %>
+                        <br>
+                        Email Cadastrado: <%= estabelecimentos[i].estabelecimento_email %>
+                    </li>
+                <% } %>
+              
+            </ul>
+        </div>
+    </div>
+
+    <div>
+        
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
