@@ -28,10 +28,10 @@ app.use(cookieParser());
 const pool = new Pool(
     {
         user: 'postgres',
-        password: 'bd_!s_for_d4t4',
+        password: '',
         host: 'localhost',
         port: 5432,
-        database: 'testes_tabelas'
+        database: ''
     }
 );
 
@@ -43,15 +43,20 @@ function generateToken(user) {
 
   function authenticateToken(req, res, next) {
     const token = req.cookies.token;
-    //console.log(token);
-
+  
     if (!token) {
       return res.redirect('/login');
     }
-
+  
     try {
       const decoded = jwt.verify(token, chave);
       req.user = decoded;
+  
+      // Verificar se o usuário é do tipo 'usuario'
+      if (decoded.tipo !== 'usuario' ) {
+        return res.redirect('/login');
+      }
+  
       next();
     } catch (error) {
       return res.redirect('/login');
@@ -103,53 +108,107 @@ app.get('/estabelecimentos/x', function(req,res){
 });
 
 app.get('/estabelecimentos/:nome_estabelecimento', async (req,res) => {
-    const nome = req.params.nome_estabelecimento;
-    try {
-        const result = await pool.query(`select * from estabelecimentos where estabelecimento_nome = '${nome}'`);
-        const dadosObtidos = result.rows;
-        const titleTag = dadosObtidos[0].estabelecimento_nome;
-        //console.log(titleTag);
-        //console.log(dadosObtidos);
-        res.render('usuarios-comuns/render-estabelecimentos.ejs', {titleTag: titleTag, estabelecimento: dadosObtidos});
-    } catch (error) {
-        console.error('Erro ao buscar dados: ', error);
-        res.sendStatus(500).send('Erro Interno');
-    }
-    //res.render('estabelecimentos', {titleTag: 'Estabelecimentos'});
+  const nome = req.params.nome_estabelecimento;
+  try {
+      const result = await pool.query(`select * from estabelecimentos where estabelecimento_nome = '${nome}'`);
+      const dadosObtidos = result.rows;
+      const titleTag = dadosObtidos[0].estabelecimento_nome;
+      //console.log(titleTag);
+      //console.log(dadosObtidos);
+      res.render('usuarios-comuns/render-estabelecimentos.ejs', {titleTag: titleTag, estabelecimento: dadosObtidos});
+  } catch (error) {
+      console.error('Erro ao buscar dados: ', error);
+      res.sendStatus(500).send('Erro Interno');
+  }
+  //res.render('estabelecimentos', {titleTag: 'Estabelecimentos'});
 });
 
 app.get('/estabelecimentos/:nome_estabelecimento/horarios', async (req,res) => {
-    const nome = req.params.nome_estabelecimento;
+  const nome = req.params.nome_estabelecimento;
 
-    try {
-      const result = await pool.query(`select horario_funcionamento, horario_disponibilidade from horarios inner join estabelecimentos
-      on horarios.estabelecimento_id = estabelecimentos.estabelecimento_id where estabelecimento_nome = '${nome}'`);
-      const dadosObtidos = result.rows;
-      var dadosSorted = dadosObtidos.sort();
-      //console.log(dadosObtidos);
-      console.log(dadosObtidos.length);
-      var horarios = [];
-      //console.log(dadosSorted);
-      for (let i = 0; i < dadosObtidos.length; i++){
-        let combo = []
-        combo.push(dadosObtidos[i].horario_funcionamento);
-        combo.push(dadosObtidos[i].horario_disponibilidade);
-        horarios.push(combo);
-      }
-
-      horarios = horarios.sort();
-      
-
-
-      console.log(horarios);
-      const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-      res.render('usuarios-comuns/horarios', {titleTag: 'Horários', dias: dias, horarios: horarios, nome: nome}); 
-    } catch (error) {
-      console.error('Erro ao buscar dados: ', error);
-      res.sendStatus(500).send('Erro Interno');
+  try {
+    const result = await pool.query(`select horario_funcionamento, horario_disponibilidade from horarios inner join estabelecimentos
+    on horarios.estabelecimento_id = estabelecimentos.estabelecimento_id where estabelecimento_nome = '${nome}'`);
+    const dadosObtidos = result.rows;
+    var dadosSorted = dadosObtidos.sort();
+    //console.log(dadosObtidos);
+    console.log(dadosObtidos.length);
+    var horarios = [];
+    //console.log(dadosSorted);
+    for (let i = 0; i < dadosObtidos.length; i++){
+      let combo = []
+      combo.push(dadosObtidos[i].horario_funcionamento);
+      combo.push(dadosObtidos[i].horario_disponibilidade);
+      horarios.push(combo);
     }
-    //Os horários de cada local são definidos pelo estabelecimento, sendo assim, armazenaremos no banco de dados;
+
+    horarios = horarios.sort();
+    
+
+
+    console.log(horarios);
+    const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+    res.render('usuarios-comuns/horarios', {titleTag: 'Horários', dias: dias, horarios: horarios, nome: nome}); 
+  } catch (error) {
+    console.error('Erro ao buscar dados: ', error);
+    res.sendStatus(500).send('Erro Interno');
+  }
+  //Os horários de cada local são definidos pelo estabelecimento, sendo assim, armazenaremos no banco de dados;
 });
+
+app.get('/estabelecimentos/:nome_estabelecimento/alugar', (req, res) => {
+  const nome_estabelecimento = req.params.nome_estabelecimento;
+  const error = null;
+  const success = null; 
+
+  res.render('alugar', { nome_estabelecimento, error, success });
+});
+
+
+app.post('/estabelecimentos/:nome_estabelecimento/alugar', async (req, res) => {
+  const nome = req.params.nome_estabelecimento;
+  const { usuario_id, hora_selecionada, dia_selecionado } = req.body;
+
+  try {
+    // Verificar se o estabelecimento existe
+    const estabelecimentoResult = await pool.query(`SELECT * FROM estabelecimentos WHERE estabelecimento_nome = '${nome}'`);
+    const estabelecimento = estabelecimentoResult.rows[0];
+    
+    if (!estabelecimento) {
+      return res.status(404).send('Estabelecimento não encontrado');
+    }
+    
+    // Verificar disponibilidade do horário
+    const horarioResult = await pool.query(`
+      SELECT * FROM horarios
+      WHERE estabelecimento_id = ${estabelecimento.estabelecimento_id}
+        AND horario_funcionamento = '${hora_selecionada}'
+        AND horario_disponibilidade = '${dia_selecionado}'
+        AND status = true
+    `);
+    
+    if (horarioResult.rows.length === 0) {
+      return res.status(400).send('Horário indisponível');
+    }
+    
+    // Registrar a locação
+    const locacaoResult = await pool.query(`
+      INSERT INTO locacoes (usuario_id, estabelecimento_id, hora_selecionada, dia_selecionado)
+      VALUES (${usuario_id}, ${estabelecimento.estabelecimento_id}, '${hora_selecionada}', '${dia_selecionado}')
+      RETURNING *
+    `);
+    
+    const locacao = locacaoResult.rows[0];
+    
+    // Redirecionar para a página de confirmação
+    res.redirect('/locacao-confirmada');
+  } catch (error) {
+    console.error('Erro ao processar a solicitação: ', error);
+    res.sendStatus(500).send('Erro Interno');
+  }
+});
+
+
 
 //gets-logins
 //login padrão
@@ -286,16 +345,46 @@ app.get('/redefinir-senha', function(req, res){
 })
 
 app.get('/x/gerenciar', authenticateToken, function(req, res){
-    res.render('alterar-perfil', {titleTag: 'Alterar Perfil'});
+  console.log(req.id + ' chamou a rota');
+  const user = req.user; // Obtém o objeto de usuário do token
+  res.render('alterar-perfil', {titleTag: 'Alterar Perfil', user: user });
 })
 
 app.get('/x/locacoes', authenticateToken, function(req, res){
     res.render('locacoes', {titleTag: 'Histórico de Locações'});
 })
 
-
+app.get('/alterar-dados', authenticateToken, function(req, res){
+  const user = req.user;
+  res.render('alterar-dados', { titleTag: 'Alterar Dados', user: user });
+});
 
 // Posts
+app.post('/alterar-dados', authenticateToken, function(req, res){
+  const user = req.user;
+  const { nome, email } = req.body;
+  
+  const updateQuery = "UPDATE usuarios SET usuario_nome = $1, usuario_email = $2 WHERE usuario_id = $3";
+  const values = [nome, email, user.usuario_id];
+
+  pool.query(updateQuery, values, (err, result) => {
+    if (err) {
+      console.error(err);
+      res.redirect('/perfil');
+    } else {
+      res.redirect('/perfil');
+    }
+  });
+});
+
+
+app.post('/logout', function(req, res) {
+  // Limpar o cookie de token
+  res.clearCookie('token');
+  
+  res.redirect('/');
+});
+
 app.post('/login-locatarios', async (req, res) => {
     const email = req.body.nome;
     const senha = req.body.senha;
@@ -603,3 +692,4 @@ app.post('/local', function(req, res){
 app.listen(3000, function(req, res){
     console.log('Server running on 3000');
 })
+
