@@ -1,5 +1,22 @@
 <%- include('partials/header') %>
 
 
+<div class="login-usuarios">
+    <div class="box-parent-login">
+        <div class="user-info">
+            <h3>Informações do Usuário</h3>
+            <p><strong>Nome:</strong> <%= user.usuario_nome %></p>
+            <p><strong>Email:</strong> <%= user.usuario_email %></p>
+        </div>
+        <div class="btn-group" role="group">
+            <a href="/alterar-dados" class="btn btn-primary">Alterar Dados</a>
+        </div>
+        <form action="/logout" method="POST">
+            <button type="submit" class="btn btn-danger">Logout</button>
+          </form>
+    </div>
+</div>
+
+
 
 <%- include('partials/footer') %>
