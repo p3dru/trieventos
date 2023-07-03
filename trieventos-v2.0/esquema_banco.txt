@@ -1,3 +1,28 @@
+
+CREATE TABLE IF NOT EXISTS public.locacoes
+(
+    locacao_id SERIAL PRIMARY KEY,
+    usuario_id INTEGER NOT NULL,
+    estabelecimento_id INTEGER NOT NULL,
+    hora_selecionada TIME NOT NULL,
+    dia_selecionado DATE NOT NULL,
+    CONSTRAINT fk_usuario
+        FOREIGN KEY (usuario_id)
+        REFERENCES public.usuarios (usuario_id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+    CONSTRAINT fk_estabelecimento
+        FOREIGN KEY (estabelecimento_id)
+        REFERENCES public.estabelecimentos (estabelecimento_id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+);
+
+ALTER TABLE IF EXISTS public.locacoes
+    OWNER TO postgres;
+
+
+
 -- Table: public.estabelecimentos
 
 -- DROP TABLE IF EXISTS public.estabelecimentos;
