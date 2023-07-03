@@ -1,60 +1,101 @@
 <%- include('../partials/header') %>
 
-<table>
+<table class="horarios">
+  <% const dias = ['Domingo','Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sabado'] %>
   <thead>
     <tr>
-      <th><h4><span class="badge text-bg-dark">Horário/Dia</span></h4></th>
-      <th><h4><span class="badge text-bg-dark">Domingo</span></h4></th>
-      <th><h4><span class="badge text-bg-dark">Segunda</span></h4></th>
-      <th><h4><span class="badge text-bg-dark">Terça</span></h4></th>
-      <th><h4><span class="badge text-bg-dark">Quarta</span></h4></th>
-      <th><h4><span class="badge text-bg-dark">Quinta</span></h4></th>
-      <th><h4><span class="badge text-bg-dark">Sexta</span></h4></th>
-      <th><h4><span class="badge text-bg-dark">Sábado</span></h4></th>      
+      <th></th>
+      <% for (let j = 0; j < dias.length; j++) { %>
+        <th><h4><span class="badge text-bg-dark"><%= dias[j] %></span></h4></th>
+      <% } %>
     </tr>
   </thead>
-  <!-- Aqui, as tds estão acompanhando cada dia, ou seja, cada td é uma célula horizontal, ao total devem ter 7
-  Para cada linha, precisamos fazer uma verificação se ele está disponível ou não, para isso, basta criar uma tabela no banco com
-os horários. Lá, verificamos todos os horários disponíveis e atribuímos ao horarios, verificamos se o atributo disponível == true
-se sim, renderizamos ele como disponível, se não, renderizamos como falso-->
+  <% const horas = ['16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'] %>
   <tbody>
-    <% for (let i = 0; i < horarios.length; i++) { %>
+    <% for (let i = 0; i < horas.length; i++) { %>
       <tr>
-        <td><h4><span class="badge text-bg-dark"><%= horarios[i][0] %></span></h4></td>
-        <td><h4><span class="badge text-bg-success"><%= horarios[i][1] %></span></h4></td>
-        <td><h4><span class="badge text-bg-success"><%= horarios[i][1] %></span></h4></td>
-        <td><h4><span class="badge text-bg-success"><%= horarios[i][1] %></span></h4></td>
-        <td><h4><span class="badge text-bg-success"><%= horarios[i][1] %></span></h4></td>
-        <td><h4><span class="badge text-bg-success"><%= horarios[i][1] %></span></h4></td>
-        <td><h4><span class="badge text-bg-success"><%= horarios[i][1] %></span></h4></td>
-        <td><h4><span class="badge text-bg-success"><%= horarios[i][1] %></span></h4></td>
+        <td><h4><span class="badge text-bg-dark"><%= horas[i] %></span></h4></td>
+        <% for (let j = 0; j < dias.length; j++) { %>
+          <% let encontrado = false; %>
+          <% let horarioEncontrado = null %>
+          <% for (let k = 0; k < horarios.length; k++) { %>
+            <% if (horarios[k].horario_dia == dias[j] && horarios[k].horario_hora == horas[i] && horarios[k].horario_disponibilidade == 'true') { %>
+              <% encontrado = true; %>
+              <% horarioEncontrado = horarios[k] %>
+            <% } %>
+            <% if (horarios[k].horario_dia == dias[j] && horarios[k].horario_hora == horas[i] && horarios[k].horario_disponibilidade != 'true') { %>
+              <% encontrado = 'agendado'; %>
+              <% horarioEncontrado = horarios[k] %>
+            <% } %>
+          <% } %>
+          <td>
+            <% if(encontrado == true) { %>
+              <% console.log(horarioEncontrado.horario_id) %>
+              <button id="<%= horarioEncontrado.horario_id %>" type="button" class="btn btn-success" onclick="handleButtonClick(this)">Disponível</button>
+            <% } else { %>
+              <% if(encontrado == 'agendado') { %>
+                <button type="button" class="btn btn-warning disabled">Agendado</button>
+              <% } else { %>
+              <button type="button" class="btn btn-danger disabled">Fechado</button>
+              <% } %>
+            <% } %>
+          </td>
+        <% } %>
       </tr>
     <% } %>
   </tbody>
 </table>
 
 
-<!--
+<div class="container-botoes">
+  <div class="box-parent-login botoes">
+      <div class="box-parent-login">
+          <form role="form" action="/estabelecimentos/<%= nome %>">
+              <fieldset>
+                  <input type="submit" value="Voltar" class="btn btn-primary"/>
+              </fieldset>
+          </form>
+      </div>
+  </div>
+  <div class="box-parent-login botoes">
+      <div class="box-parent-login">
+          <form role="form" action="/estabelecimentos/<%= nome %>/horarios">
+              <fieldset>
+                  <input type="submit" value="Limpar" class="btn btn-primary"/>
+              </fieldset>
+          </form>
+      </div>
+  </div>
 
--->
-  <div class="box-parent-login">
-    <div class="box-parent-login">
-        <form role="form" action="/estabelecimentos/<%= nome %>">
-            <fieldset>
-                <input type="submit" value="Voltar" class="btn btn-primary"/>
-            </fieldset>
-        </form>
-    </div>
+  <div class="box-parent-login botoes">
+      <div class="box-parent-login">
+          <form role="form" action="">
+              <fieldset>
+                  <input type="submit" value="Agendar" class="btn btn-primary"/>
+              </fieldset>
+          </form>
+      </div>
+  </div>
+  
 </div>
 
 <script>
-  function verificaDisponibilidade(valor){
-    if (valor == 'true'){
-      return '<h4><span class="badge text-bg-success">valor</span></h4></td>';
+  var horariosSelecionados = [];
+  function handleButtonClick(button) {
+    if (button.id) {
+      //alert(button);
+      // Realize a ação desejada com base no ID do botão clicado
+      button.textContent = "Selecionado";
+      button.style.backgroundColor = 'black';
+      horariosSelecionados.push(button.id);
     } else {
-      return '<h4><span class="badge text-bg-danger">valor</span></h4></td>';
+      alert("Botão Falso foi clicado.");
+      // Realize a ação desejada para o botão Falso
     }
+
+    /*alert(horariosSelecionados);*/
   }
+  
 </script>
 
 <%- include('../partials/footer') %>

@@ -37,3 +37,12 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public.usuarios
     OWNER to postgres;
+
+create table horarios(
+	horario_id serial primary key,
+	horario_dia varchar(10) not null,
+	horario_hora varchar(10) not null,
+	horario_disponibilidade varchar(10) default 'true',
+	estabelecimento_id int references estabelecimentos(estabelecimento_id) not null,
+	usuario_id int references usuarios(usuario_id)
+)

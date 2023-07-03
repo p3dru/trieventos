@@ -10,7 +10,6 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 
 
-
 const chave = '3eventsxcz';
 const chaveEstab = 'qw,ckdsl';
 const chaveAdm = 'ccmsdcdsmcmdklsmdklscldm,.mh';
@@ -137,36 +136,28 @@ app.get('/estabelecimentos/:nome_estabelecimento', async (req,res) => {
 });
 
 app.get('/estabelecimentos/:nome_estabelecimento/horarios', async (req,res) => {
+  //buscar no banco de dados os horários correspondentes ao estabelecimento do link (pegar id e fazer a consulta no banco)
+  //depois disso, armazenar os horários e passar para o ejs que vai verificar se o horário está disponível ou não
     const nome = req.params.nome_estabelecimento;
+    //console.log(nome);
+    
+    try{
+      const resultId = await pool.query(`select estabelecimento_id from estabelecimentos where estabelecimento_nome = '${nome}'`);
+      const dadosObtidos = resultId.rows;
+      const estab_id = dadosObtidos[0].estabelecimento_id;
+      console.log(estab_id);
 
-    try {
-      const result = await pool.query(`select horario_funcionamento, horario_disponibilidade from horarios inner join estabelecimentos
-      on horarios.estabelecimento_id = estabelecimentos.estabelecimento_id where estabelecimento_nome = '${nome}'`);
-      const dadosObtidos = result.rows;
-      var dadosSorted = dadosObtidos.sort();
-      //console.log(dadosObtidos);
-      console.log(dadosObtidos.length);
-      var horarios = [];
-      //console.log(dadosSorted);
-      for (let i = 0; i < dadosObtidos.length; i++){
-        let combo = []
-        combo.push(dadosObtidos[i].horario_funcionamento);
-        combo.push(dadosObtidos[i].horario_disponibilidade);
-        horarios.push(combo);
-      }
-
-      horarios = horarios.sort();
-      
-
-
+      const result = await pool.query(`select * from horarios where estabelecimento_id = '${estab_id}'`);
+      const horarios = result.rows;
       console.log(horarios);
-      const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-      res.render('usuarios-comuns/horarios', {titleTag: 'Horários', dias: dias, horarios: horarios, nome: nome}); 
-    } catch (error) {
+
+
+      res.render('usuarios-comuns/horarios', {titleTag: 'Horários', horarios: horarios, nome: nome});
+
+    } catch(error){
       console.error('Erro ao buscar dados: ', error);
       res.sendStatus(500).send('Erro Interno');
     }
-    //Os horários de cada local são definidos pelo estabelecimento, sendo assim, armazenaremos no banco de dados;
 });
 
 //gets-logins
@@ -401,13 +392,41 @@ app.get('/gerenciar-estabelecimento', autenthicateTokenEstab, function(req, res)
 app.post('/gerenciar-estabelecimento', autenthicateTokenEstab, async(req, res) => {
   //console.log('oi')
   const infos = req.cookies.infos;
-  //console.log(infos);
-  const email = req.body.email;
-  const senha = req.body.senha;
-  const confirmarSenha = req.body.confirmarSenha;
+  console.log(infos);
+  const body = req.body;
+  console.log(body);
 
-  //console.log(email, senha, confirmarSenha);
+  //inserir apenas os horários na tabela de horários
+  const horarios = body.horarios;
+  const horariosAspasSimples = horarios.map(value => `'${value}'`)
+  const horariosFormatados = `[${horariosAspasSimples.join(',')}]`;
+  console.log(horariosFormatados)
 
+  const dias = body.diasSemana;
+  const diasAspasSimples = dias.map(value => `'${value}'`);
+  const diasFormatados = `[${diasAspasSimples.join(',')}]`;
+  console.log(diasFormatados);
+
+  
+
+
+  /*for(let i = 0; i < horarios.length; i++){
+    for(let j = 0; j < dias.length; j++){
+      console.log(`${horarios[i]}+${dias[j]}`);
+    }
+  }*/
+
+  
+  try{
+    const queryHorario = await pool.query(`select definir_horarios(array${horariosFormatados}, array${diasFormatados}, ${infos[0]})`);
+    const result = queryHorario.rows;
+    console.log(result);
+    
+
+  } catch(error){
+    console.error('Erro ao buscar dados: ', error);
+    res.sendStatus(500).send('Erro Interno');
+  }
 
 });
 
