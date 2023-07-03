@@ -8,7 +8,8 @@ const bcrypt = require('bcryptjs');
 const match = require('assert');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
-
+const formidable = require('formidable');
+const fs = require('fs');
 
 
 const chave = '3eventsxcz';
@@ -29,10 +30,10 @@ app.use(cookieParser());
 const pool = new Pool(
     {
         user: 'postgres',
-        password: 'bd_!s_for_d4t4',
+        password: '',
         host: 'localhost',
         port: 5432,
-        database: 'testes_tabelas'
+        database: ''
     }
 );
 
@@ -308,7 +309,8 @@ app.get('/usuario/gerenciar', authenticateToken, function(req, res){
     const infos = req.cookies.infos;
     //const nome_usuario = req.params.locatario;
     //console.log(infos)
-    res.render('alterar-perfil', {titleTag: 'Alterar Perfil', sucesso: '', erro: ''});
+    const user = req.user
+    res.render('alterar-perfil', {titleTag: 'Alterar Perfil', sucesso: '', erro: '', user:user});
 })
 
 app.post('/usuario/gerenciar', authenticateToken, async(req, res) => {
@@ -386,6 +388,13 @@ app.post('/usuario/gerenciar', authenticateToken, async(req, res) => {
     }
   }
 })
+
+app.post('/logout', function(req, res) {
+  // Limpar o cookie de token
+  res.clearCookie('token');
+  
+  res.redirect('/');
+});
 
 app.get('/x/locacoes', authenticateToken, function(req, res){
     res.render('locacoes', {titleTag: 'Histórico de Locações'});
@@ -668,48 +677,112 @@ app.post('/', function(req, res){
     //se tiver tudo certo: redireciona para a tela home, se não, exibe uma mensagem de erro e permanece na tela de login
     res.redirect('/');
 })
+ 
+
+// GET route handler for /estabelecimentocard
+app.get('/estabelecimentocard', (req, res) => {
+  const infos = req.cookies.infos;
+  const sucesso = 'Atualizado';
+  const erro = 'Erro';
+
+  const query = `SELECT * FROM estabelecimentos WHERE estabelecimento_id = ${infos[0]}`;
+
+  pool.query(query, (error, results) => {
+    if (error) {
+      console.error('Erro ao obter os dados:', error);
+      res.sendStatus(500).send('Erro Interno');
+    } else {
+      const estabelecimentoData = results[0];
+
+      res.render('estabelecimentos/home', { estabelecimento: estabelecimentoData, sucesso, erro });
+    }
+  });
+});
+
 
 //PATCHES
 app.patch('/estabelecimentocard', (req, res) => {
-  const dadosAtualizados = req.body;
-  const token = req.cookies.token;
-  const infos = req.cookies.infos;
-  console.log(dadosAtualizados);
-  //console.log(token);
-  console.log('Essas são as informações: ',  infos);
-  
-  var query = '';
+  const form = new formidable.IncomingForm();
 
-  if (dadosAtualizados.novoEmail != '' && dadosAtualizados.descricaoCard != ''){
-    query = `update estabelecimentos set estabelecimento_email = ${dadosAtualizados.novoEmail},
-      estabelecimento_descricao_card = ${dadosAtualizados.descricaoCard} where estabelecimento_id = ${infos[0]}`;
-  } else {
-    if (dadosAtualizados.novoEmail != '' && dadosAtualizados.descricaoCard == ''){
-      query = `update estabelecimentos set estabelecimento_email = ${dadosAtualizados.novoEmail}
-      where estabelecimento_id = ${infos[0]}`;
-    } else {
-      if (dadosAtualizados.novoEmail == '' && dadosAtualizados.descricaoCard != ''){
-        query = `update estabelecimentos set estabelecimento_descricao_card = ${dadosAtualizados.descricaoCard}
-        where estabelecimento_id = ${infos[0]}`;
-      }
+  form.uploadDir = path.join(__dirname, 'public/images');
+  form.keepExtensions = true;
+
+  form.parse(req, (err, fields, files) => {
+    if (err) {
+      console.error('Erro ao fazer o upload:', err);
+      res.status(500).send('Erro Interno'); 
+      return; 
     }
-  }
 
-  console.log('Essa é a query: ', query);
+    const dadosAtualizados = fields;
+    const imagemEstabelecimento = files.imagemEstabelecimento;
 
-  //SE A QUERY ESTIVER VAZIA, APENAS LANÇA UM ALERT
-  //Se não, faz a alteração e informa ao usuário com o Alert 
+    const token = req.cookies.token;
+    const infos = req.cookies.infos;
 
-  /*try{
-    
+    let query = '';
 
-    
-  }
-  catch(error){
-    console.error('Erron ao buscar dados: ', error);
-    res.sendStatus(500).send('Erro Interno');
-  }*/
+    if (dadosAtualizados.novoEmail !== '' && dadosAtualizados.descricaoCard !== '') {
+      query += `UPDATE estabelecimentos SET estabelecimento_email = '${dadosAtualizados.novoEmail}',
+        estabelecimento_descricao_card = '${dadosAtualizados.descricaoCard}',
+        estabelecimento_imagem = '${imagemEstabelecimento.name}'
+        WHERE estabelecimento_id = ${infos && infos.length > 0 ? infos[0] : ''}`;
+    } else if (dadosAtualizados.novoEmail !== '' && dadosAtualizados.descricaoCard === '') {
+      query += `UPDATE estabelecimentos SET estabelecimento_email = '${dadosAtualizados.novoEmail}',
+        estabelecimento_imagem = '${imagemEstabelecimento.name}'
+        WHERE estabelecimento_id = ${infos && infos.length > 0 ? infos[0] : ''}`;
+    } else if (dadosAtualizados.novoEmail === '' && dadosAtualizados.descricaoCard !== '') {
+      query += `UPDATE estabelecimentos SET estabelecimento_descricao_card = '${dadosAtualizados.descricaoCard}',
+        estabelecimento_imagem = '${imagemEstabelecimento.name}'
+        WHERE estabelecimento_id = ${infos && infos.length > 0 ? infos[0] : ''}`;
+    }
+ 
+    const newPath = path.join(__dirname, 'public/images', `carrousel/${imagemEstabelecimento.name}`);
+    const oldPath = imagemEstabelecimento.path;
+
+    if (oldPath) {
+      fs.readFile(oldPath, (err, data) => { 
+        if (err) {
+          console.error('Erro ao ler o arquivo da imagem:', err);
+          res.status(500).send('Erro Interno');
+          return;
+        }
+
+        const imagemBytes = data;
+
+        fs.writeFile(newPath, imagemBytes, (err) => {
+          if (err) {
+            console.error('Erro ao mover o arquivo:', err);
+            res.status(500).send('Erro Interno');
+            return;
+          }
+
+          // Atualiza os dados.
+          pool.query(query, (error, results) => {
+            if (error) {
+              console.error('Erro ao atualizar dados:', error);
+              res.status(500).send('Erro Interno');
+            } else {
+              console.log('Dados atualizados com sucesso');
+              res.send('Dados atualizados com sucesso');
+            }
+          });
+        });
+      });
+    } else {
+      pool.query(query, (error, results) => {
+        if (error) {
+          console.error('Erro ao atualizar dados:', error);
+          res.status(500).send('Erro Interno');
+        } else {
+          console.log('Dados atualizados com sucesso');
+          res.send('Dados atualizados com sucesso');
+        }
+      });
+    }
+  });
 });
+
 
 app.post('/local', function(req, res){
     //aqui devemos pegar as informações de login e buscar no banco de dados
