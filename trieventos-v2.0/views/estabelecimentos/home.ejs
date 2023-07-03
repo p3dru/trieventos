@@ -1,12 +1,10 @@
-<%- include('../partials/header-estabelecimentos') %>
-
-
+<%- include('../partials/header-estabelecimentos', { titleTag: 'Titulo da pagina' }) %>
 
 <div class="info-estabelecimentos">
     <div class="info-estabelecimentos-card">
-        #Visualização do usuário
+        <!-- Visualização do usuário -->
         <div class="card" style="width: 18rem;">
-            <img src="..\images\carrousel\Post2.jpg" class="card-img-top" alt="...">
+          <img src="/trieventos/trieventos-v2.0/public/images/carrousel/estabelecimento[0].estabelecimento_imagem" class="card-img-top" alt="..." id="imagemEstabelecimento">
             <div class="card-body">
               <h5 class="card-title"><%= estabelecimento[0].estabelecimento_nome %></h5>
               <p class="card-text"><%= estabelecimento[0].estabelecimento_descricao_card %></p>
@@ -14,8 +12,8 @@
         </div>
     </div>
     <div class="info-estabelecimentos-alteracoes">
-        #Alterar dados
-        <form id="alterarCard">
+        <!-- Alterar dados -->
+        <form id="alterarCard" method="post" action="/estabelecimentocard" enctype="multipart/form-data">
             <div class="mb-3">
               <label for="alterarEmail" class="form-label">Alterar E-mail</label>
               <input type="email" name='novoEmail' class="form-control" id="alterarEmail" aria-describedby="emailHelp">
@@ -24,13 +22,18 @@
               <label for="alterarDescricaoCard" class="form-label">Alterar Descrição do Card</label>
               <input type="text" name='descricaoCard' class="form-control" id="alterarDescricaoCard">
             </div>
+            <div class="mb-3">
+              <input type="hidden" name="_method" value="PATCH">
+              <label for="imagemEstabelecimento" class="form-label">Selecionar Imagem</label>
+              <input class="form-control" type="file" id="uploadFoto" name="imagemEstabelecimento">
+            </div>
+
             <button type="submit" class="btn btn-primary">Alterar</button>
           </form>
     </div>
-
 </div>
 
-//FAZER O PATCH DO MILENIO
+<!-- FAZER O PATCH DO MILENIO -->
 <script>
   document.getElementById('alterarCard').addEventListener('submit', function(event) {
     event.preventDefault(); // Impede o envio do formulário padrão
@@ -39,7 +42,7 @@
 
     fetch('/estabelecimentocard', {
       method: 'PATCH',
-      body: new URLSearchParams(formData) // Converte FormData em URLSearchParams
+      body: formData // Use the FormData directly as the body
     })
     .then(response => {
       if (response.ok) {
@@ -53,6 +56,32 @@
     .catch(error => {
       console.error('Ocorreu um erro:', error);
     });
+  });
+
+  const fileInput = document.getElementById('uploadFoto');
+  const imageElement = document.getElementById('imagemEstabelecimento');
+
+  // Adicione um ouvinte de evento para detectar quando um arquivo é selecionado
+  fileInput.addEventListener('change', function(event) {
+    // Verifique se um arquivo foi selecionado
+    if (event.target.files && event.target.files[0]) {
+      // Crie uma URL temporária para a imagem selecionada
+      const imageURL = URL.createObjectURL(event.target.files[0]);
+
+      // Atualize o atributo 'src' da imagem com a nova URL
+      imageElement.src = imageURL;
+
+      // Salve a URL no localStorage para recuperá-la ao atualizar a página
+      localStorage.setItem('recent-image', imageURL);
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const recentImageDataUrl = localStorage.getItem('recent-image');
+
+    if (recentImageDataUrl) {
+      imageElement.src = recentImageDataUrl; // Carrega a imagem recente ao carregar a página
+    }
   });
 </script>
 
