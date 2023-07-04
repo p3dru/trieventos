@@ -1,0 +1,72 @@
+<%- include('../partials/header-adm') %>
+
+<% if (sucesso == 'Atualizado Senha') { %>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <strong>Senha Atualizada</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+<% } %>
+<% if (sucesso == 'Atualizado Email') { %>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <strong>Senha Atualizada</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+<% } %>
+<% if (sucesso == 'Nada') { %>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <strong>Nenhum dado atualizado</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+<% } %>
+
+  
+<% if (erro && erro != '') { %>
+    <% if (erro == 'E-mail' || erro == 'Senha' || erro == 'Confirmar Senha') { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            Campo <strong>"<%= erro %>"</strong> não preenchido 
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <% } %>
+    <% if (erro == 'Diferentes') { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            As senhas <strong>não conferem</strong> 
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+    <% } %>
+<% } %>
+
+<div class="alterar-perfil-geral">
+    <div class="box-parent-login">
+        <div class="box-parent-login">
+            <form role="form" action="/administracao/editar-estabelecimentos/<%= idEstabelecimento %>" method="POST">
+                <div class="info-estabelecimentos">
+                    <fieldset class="dados-texto">
+                        <div class="estabelecimento-dados-texto">
+                            <div class="form-group ls-login-user">
+                                <label for="userEmail">E-mail</label>
+                                <input class="form-control ls-login-bg-user input-lg" id="userEmail" name="email" type="email" aria-label="E-mail" placeholder="Novo E-mail">
+                            </div>
+    
+                            <div class="form-group ls-login-user">
+                                <label for="userNewPassword">Senha</label>
+                                <input class="form-control ls-login-bg-user input-lg" id="userNewPassword" name="senha" type="password" aria-label="Senha" placeholder="Nova Senha">
+                            </div>
+    
+                            <div class="form-group ls-login-user">
+                                <label for="retypeUserNewPassword">Confirmar Senha</label>
+                                <input class="form-control ls-login-bg-user input-lg" id="retypeUserNewPassword" name="confirmarSenha" type="password" aria-label="Confirmar Senha" placeholder="Confirmar Senha">
+                            </div> 
+                        </div>
+
+                    </fieldset>
+                </div>      
+                
+
+
+                <input type="submit" value="Alterar Dados" class="btn btn-primary btn-lg btn-block" id="btn-alterar"/>
+            </form>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -12,6 +12,7 @@
 
 body{
     background-color: #FCFFE9;
+
 }
 
 .container-botoes{
@@ -25,12 +26,23 @@ body{
 
 .footer{
     background-color: white;
+    bottom:0;
+    position:fixed;
+    width: 100%;
 }
 
 /*LOGIN*/
 
 #login-inicial{
     padding: 8% 25% 18% 25%;
+}
+
+.home{
+    padding-bottom: 3%;
+}
+
+.estab{
+    padding-bottom: 10%;
 }
 
 .form-login{
@@ -169,5 +181,12 @@ body{
     margin: 4% auto -2% auto;
 }
 
+.adm{
+    display: flex;
+}
 
+.container-adm{
+    flex: 1;
+    margin: 4%;
+}
 

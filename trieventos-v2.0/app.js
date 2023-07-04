@@ -43,9 +43,10 @@ function generateToken(user) {
 
   function authenticateToken(req, res, next) {
     const token = req.cookies.token;
-    //console.log(token);
 
-    if (!token) {
+    //console.log(token);
+    //cuidado aqui
+    if (!token || token === undefined) {
       return res.redirect('/login');
     }
 
@@ -135,13 +136,17 @@ app.get('/estabelecimentos/:nome_estabelecimento', async (req,res) => {
     //res.render('estabelecimentos', {titleTag: 'Estabelecimentos'});
 });
 
-app.get('/estabelecimentos/:nome_estabelecimento/horarios', async (req,res) => {
+app.get('/estabelecimentos/:nome_estabelecimento/horarios', authenticateToken, async (req,res) => {
   //buscar no banco de dados os horários correspondentes ao estabelecimento do link (pegar id e fazer a consulta no banco)
   //depois disso, armazenar os horários e passar para o ejs que vai verificar se o horário está disponível ou não
+  const infos = req.cookies.infos;
+  console.log(infos);
     const nome = req.params.nome_estabelecimento;
     //console.log(nome);
     
     try{
+      const queryAtualizacao = await pool.query('select atualizar_registros()');
+
       const resultId = await pool.query(`select estabelecimento_id from estabelecimentos where estabelecimento_nome = '${nome}'`);
       const dadosObtidos = resultId.rows;
       const estab_id = dadosObtidos[0].estabelecimento_id;
@@ -149,15 +154,52 @@ app.get('/estabelecimentos/:nome_estabelecimento/horarios', async (req,res) => {
 
       const result = await pool.query(`select * from horarios where estabelecimento_id = '${estab_id}'`);
       const horarios = result.rows;
-      console.log(horarios);
+      //console.log(horarios);
 
 
-      res.render('usuarios-comuns/horarios', {titleTag: 'Horários', horarios: horarios, nome: nome});
+      res.render('usuarios-comuns/horarios', {titleTag: 'Horários', horarios: horarios, nome: nome, estab_id: estab_id, horariosSelecionados: []});
 
     } catch(error){
       console.error('Erro ao buscar dados: ', error);
       res.sendStatus(500).send('Erro Interno');
     }
+});
+
+app.post('/manipular-horarios', async (req, res) => {
+  const body = req.body;
+  var arrayHorarios = body.horariosSelecionados;
+  arrayHorarios = JSON.parse(arrayHorarios);
+  var idEstab = body.idEstab;
+  idEstab = JSON.parse(idEstab)
+  //console.log(array[0]);
+  //console.log(arrayHorarios)
+  //console.log(body);
+  //console.log(idEstab);
+ 
+  const horariosAspasSimples = arrayHorarios.map(value => `${value}`);
+  const horariosFormatados = `[${horariosAspasSimples.join(',')}]`;
+  console.log(horariosFormatados);
+
+  
+  try{
+    const updateQuery = await pool.query(`select agendar(array${horariosFormatados}, '${idEstab}')`)
+    const result = updateQuery.rows;
+    console.log(result);
+
+    const query = await pool.query(`select estabelecimento_nome from estabelecimentos where estabelecimento_id = '${idEstab}'`)
+    var resultQuery = query.rows;
+    resultQuery = resultQuery[0].estabelecimento_nome;
+    //console.log(resultQuery);
+
+
+    return res.redirect(`/estabelecimentos/${resultQuery}/horarios`); 
+  } catch(error){
+    console.error('Erro ao buscar dados: ', error);
+    res.sendStatus(500).send('Erro Interno');
+  }
+
+
+
 });
 
 //gets-logins
@@ -689,7 +731,7 @@ app.post('/', function(req, res){
 })
 
 //PATCHES
-app.patch('/estabelecimentocard', (req, res) => {
+app.patch('/estabelecimentocard', async (req, res) => {
   const dadosAtualizados = req.body;
   const token = req.cookies.token;
   const infos = req.cookies.infos;
@@ -700,34 +742,38 @@ app.patch('/estabelecimentocard', (req, res) => {
   var query = '';
 
   if (dadosAtualizados.novoEmail != '' && dadosAtualizados.descricaoCard != ''){
-    query = `update estabelecimentos set estabelecimento_email = ${dadosAtualizados.novoEmail},
-      estabelecimento_descricao_card = ${dadosAtualizados.descricaoCard} where estabelecimento_id = ${infos[0]}`;
+    query = `update estabelecimentos set estabelecimento_email = '${dadosAtualizados.novoEmail}',
+      estabelecimento_descricao_card = '${dadosAtualizados.descricaoCard}' where estabelecimento_id = '${infos[0]}'`;
   } else {
     if (dadosAtualizados.novoEmail != '' && dadosAtualizados.descricaoCard == ''){
-      query = `update estabelecimentos set estabelecimento_email = ${dadosAtualizados.novoEmail}
-      where estabelecimento_id = ${infos[0]}`;
+      query = `update estabelecimentos set estabelecimento_email = '${dadosAtualizados.novoEmail}'
+      where estabelecimento_id = '${infos[0]}'`;
     } else {
       if (dadosAtualizados.novoEmail == '' && dadosAtualizados.descricaoCard != ''){
-        query = `update estabelecimentos set estabelecimento_descricao_card = ${dadosAtualizados.descricaoCard}
-        where estabelecimento_id = ${infos[0]}`;
+        query = `update estabelecimentos set estabelecimento_descricao_card = '${dadosAtualizados.descricaoCard}'
+        where estabelecimento_id = '${infos[0]}'`;
       }
     }
   }
 
   console.log('Essa é a query: ', query);
 
+
   //SE A QUERY ESTIVER VAZIA, APENAS LANÇA UM ALERT
   //Se não, faz a alteração e informa ao usuário com o Alert 
 
-  /*try{
+  try{
+    const updateQuery = await pool.query(query);
+    //const result = updateQuery.rows;
+    //console.log('Resultado: ', result[0]);
     
-
-    
+    res.redirect(`/estabelecimento/${infos[1]}`);
   }
   catch(error){
     console.error('Erron ao buscar dados: ', error);
     res.sendStatus(500).send('Erro Interno');
-  }*/
+  }
+
 });
 
 app.post('/local', function(req, res){
@@ -875,10 +921,10 @@ app.get('/adm/home', authenticateTokenAdm, async (req, res) => {
   console.log(infos);
 
   try{
-    const resultEstab = await pool.query(`select * from estabelecimentos`);
+    const resultEstab = await pool.query(`select * from estabelecimentos order by estabelecimento_id`);
     const estabelecimentosObtidos = resultEstab.rows;
 
-    const resultUsuario = await pool.query(`select * from usuarios`);
+    const resultUsuario = await pool.query(`select * from usuarios order by usuario_id`);
     const usuariosObtidos = resultUsuario.rows;
 
     console.log(estabelecimentosObtidos);
@@ -891,6 +937,189 @@ app.get('/adm/home', authenticateTokenAdm, async (req, res) => {
     res.sendStatus(500).send('Erro Interno');
   }
 });
+
+app.get('/administracao/editar-estabelecimento/:id_estabelecimento', authenticateTokenAdm, async(req, res) => {
+  const idEstab = req.params.id_estabelecimento;
+  console.log(idEstab);
+  res.render('adm/editar-estabelecimentos', {titleTag: 'Editar Estabelecimento', idEstabelecimento: idEstab, sucesso: '', erro: ''});
+});
+
+app.post('/administracao/editar-estabelecimento/:id_estabelecimento', authenticateTokenAdm, async(req, res) =>{
+  const idEstabelecimento = req.params.id_estabelecimento;
+  const email = req.body.email;
+  const senha = req.body.senha;
+  const confirmarSenha = req.body.confirmarSenha;
+
+  console.log(email, senha, confirmarSenha);
+
+  if(!email){
+    if(!senha){
+      return res.render('adm/editar-estabelecimentos', {titleTag: 'Editar Estabelecimento', idUsuario: idEstabelecimento, sucesso: 'Nada', erro: ''});
+    } else {
+      if (senha != !senha && senha != confirmarSenha){
+        return res.render('adm/editar-estabelecimentos', {titleTag: 'Editar Estabelecimento', idUsuario: idEstabelecimento, sucesso: '', erro: 'Diferentes'});
+      } else {
+        if (senha != !senha && senha == confirmarSenha){
+          /*console.log('certo')
+          console.log(idUsuario);
+          */
+          const hashSenha = await bcrypt.hash(senha, 10);
+
+          try{
+            const result = await pool.query(`select * from estabelecimentos where estabelecimento_id = '${idEstabelecimento}'`);
+            const dados = result.rows;
+            if (dados.length > 0){
+              const updateQuery = await pool.query(`update estabelecimentos set estabelecimento_senha = '${hashSenha}' where estabelecimento_id = '${idEstabelecimento}'`)
+            }
+            
+            return res.render('adm/editar-estabelecimentos', {titleTag: 'Editar Estabelecimentos', idUsuario: idEstabelecimento, sucesso: 'Atualizado Senha', erro: ''});
+          }catch(error){
+            console.error('Erro ao buscar dados: ', error);
+            res.sendStatus(500).send('Erro Interno');
+          }
+        }
+      }
+    }
+  } else {
+    if (email != !email){
+      console.log(email);
+      if(!senha){
+        try{
+          const result = await pool.query(`select * from estabelecimentos where estabelecimento_id = '${idEstabelecimento}'`);
+          const dados = result.rows;
+          if (dados.length > 0){
+            console.log(email);
+            const updateQuery = await pool.query(`update estabelecimentos set estabelecimento_email = '${email}' where estabelecimento_id = '${idEstabelecimento}'`)
+          }
+          
+          return res.render('adm/editar-usuarios', {titleTag: 'Editar Estabelecimentos', idUsuario: idEstabelecimento, sucesso: 'Atualizado Email', erro: ''});
+        }catch(error){
+          console.error('Erro ao buscar dados: ', error);
+          res.sendStatus(500).send('Erro Interno');
+        }
+      } else {
+        if (senha != !senha){
+          if (senha != confirmarSenha){
+            return res.render('adm/editar-estabelecimentos', {titleTag: 'Editar Estabelecimentos', idUsuario: idEstabelecimento, sucesso: '', erro: 'Diferentes'});
+          } else {
+            if (senha == confirmarSenha){
+              const hashSenha = await bcrypt.hash(senha, 10);
+              try{
+                const result = await pool.query(`select * from estabelecimentos where estabelecimento_id = '${idEstabelecimento}'`);
+                const dados = result.rows;
+                if (dados.lenght > 0){
+
+                  const updateQuery = await pool.query(`update estabelecimentos set estabelecimento_email = '${email}' estabelecimento_senha = '${hashSenha}' where estabelecimento_id = '${idEstabelecimento}'`);
+                }
+                
+                return res.render('adm/editar-estabelecimentos', {titleTag: 'Editar Estabelecimentos', idUsuario: idEstabelecimento, sucesso: 'Atualizado', erro: ''});
+              } catch(error){
+                console.error('Erro ao buscar dados: ', error);
+                res.sendStatus(500).send('Erro Interno');
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+})
+
+app.post('/administracao/excluir-estabelecimento/:id_estabelecimento', async(req, res) => {
+
+});
+
+app.get('/administracao/editar-usuario/:id_usuario', authenticateTokenAdm, async(req, res) => {
+  const idUsuario = req.params.id_usuario;
+  console.log(idUsuario);
+
+  res.render('adm/editar-usuarios', {titleTag: 'Editar Estabelecimento', idUsuario: idUsuario, sucesso: '', erro: ''});
+});
+
+app.post('/administracao/editar-usuario/:id_usuario', authenticateTokenAdm, async(req, res) =>{
+  const idUsuario = req.params.id_usuario;
+  const email = req.body.email;
+  const senha = req.body.senha;
+  const confirmarSenha = req.body.confirmarSenha;
+
+  console.log(email, senha, confirmarSenha);
+
+  if(!email){
+    if(!senha){
+      return res.render('adm/editar-usuarios', {titleTag: 'Editar Usuario', idUsuario: idUsuario, sucesso: 'Nada', erro: ''});
+    } else {
+      if (senha != !senha && senha != confirmarSenha){
+        return res.render('adm/editar-usuarios', {titleTag: 'Editar Usuário', idUsuario: idUsuario, sucesso: '', erro: 'Diferentes'});
+      } else {
+        if (senha != !senha && senha == confirmarSenha){
+          /*console.log('certo')
+          console.log(idUsuario);
+          */
+          const hashSenha = await bcrypt.hash(senha, 10);
+
+          try{
+            const result = await pool.query(`select * from usuarios where usuario_id = '${idUsuario}'`);
+            const dados = result.rows;
+            if (dados.length > 0){
+              const updateQuery = await pool.query(`update usuarios set usuario_senha = '${hashSenha}' where usuario_id = '${idUsuario}'`)
+            }
+            
+            return res.render('adm/editar-usuarios', {titleTag: 'Editar Usuário', idUsuario: idUsuario, sucesso: 'Atualizado Senha', erro: ''});
+          }catch(error){
+            console.error('Erro ao buscar dados: ', error);
+            res.sendStatus(500).send('Erro Interno');
+          }
+        }
+      }
+    }
+  } else {
+    if (email != !email){
+      console.log(email);
+      if(!senha){
+        try{
+          const result = await pool.query(`select * from usuarios where usuario_id = '${idUsuario}'`);
+          const dados = result.rows;
+          if (dados.length > 0){
+            console.log(email);
+            const updateQuery = await pool.query(`update usuarios set usuario_email = '${email}' where usuario_id = '${idUsuario}'`)
+          }
+          
+          return res.render('adm/editar-usuarios', {titleTag: 'Editar Usuário', idUsuario: idUsuario, sucesso: 'Atualizado Email', erro: ''});
+        }catch(error){
+          console.error('Erro ao buscar dados: ', error);
+          res.sendStatus(500).send('Erro Interno');
+        }
+      } else {
+        if (senha != !senha){
+          if (senha != confirmarSenha){
+            return res.render('adm/editar-usuarios', {titleTag: 'Editar Usuário', idUsuario: idUsuario, sucesso: '', erro: 'Diferentes'});
+          } else {
+            if (senha == confirmarSenha){
+              const hashSenha = await bcrypt.hash(senha, 10);
+              try{
+                const result = await pool.query(`select * from usuarios where usuario_id = '${idUsuario}'`);
+                const dados = result.rows;
+                if (dados.lenght > 0){
+
+                  const updateQuery = await pool.query(`update usuarios set usuario_email = '${email}' usuario_senha = '${hashSenha}' where usuario_id = '${idUsuario}'`);
+                }
+                
+                return res.render('adm/editar-usuarios', {titleTag: 'Editar Usuário', idUsuario: idUsuario, sucesso: 'Atualizado', erro: ''});
+              } catch(error){
+                console.error('Erro ao buscar dados: ', error);
+                res.sendStatus(500).send('Erro Interno');
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+});
+
+app.post('/administracao/excluir-usuario/:id_usuario', authenticateTokenAdm, async(req, res) => {
+
+})
 
 
 app.listen(3000, function(req, res){

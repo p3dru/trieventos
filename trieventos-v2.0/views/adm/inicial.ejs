@@ -1,51 +1,87 @@
 <%- include('../partials/header-adm') %>
 
-<div class="info-adm container-fluid">
-    <div class="usuarios">
-        <div class="card">
-            <div class="card-body">
-              Usuários Cadastrados: <%= usuarios.length %>
+<div class="container-fluid adm">
+    <div class="container-adm">
+        <div class="contagem-usuarios">
+            <div class="card">
+                <div class="card-body">
+                  Usuários Cadastrados: <%= usuarios.length %>
+                </div>
             </div>
         </div>
+    
+        <div class="tabela-usuarios">
+            <table class='table'>
+                <thead>
+                    <tr>
+                        <th><h4><span class="badge bg-dark">Id</span></h4></th>
+                        <th><h4><span class="badge bg-dark">Nome</span></h4></th>
+                        <th><h4><span class="badge bg-dark">E-mail</span></h4></th>
+                        <th><h4><span class="badge bg-dark">Ações</span></h4></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% for(let i = 0; i < usuarios.length; i++){ %>
+                        <tr>
+                            <td><h5><span class="badge bg-dark"><%= usuarios[i].usuario_id %></span></h5></td>
+                            <td><%= usuarios[i].usuario_nome %></td>
+                            <td><%= usuarios[i].usuario_email %></td>
+                            <td>
+                                <div class="adm-buttons">
+                                    <a href="/administracao/editar-usuario/<%= usuarios[i].usuario_id %>" class="btn btn-info">Editar</a> 
 
-        <div class="card" style="width: 18rem;">
-            <ul class="list-group list-group-flush">
-                <% for(let i = 0; i < usuarios.length; i++){ %>
-                    <li class="list-group-item">
-                        Nome de usuário: <%= usuarios[i].usuario_nome %>
-                        <br>
-                        Email cadastrado: <%= usuarios[i].usuario_email%>
-                    </li>
-                <% } %>
-              
-            </ul>
+                                    <a href="/administracao/excluir-usuario/<%= usuarios[i].usuario_id %>" class="btn btn-danger">Excluir</a>
+                                    
+                                </div>
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
         </div>
     </div>
-
-    <div class="estabelecimentos">
-        <div class="card">
-            <div class="card-body">
-              Estabelecimentos Cadastrados: <%= estabelecimentos.length %>
+    
+    <div class="container-adm">
+        <div class="contagem-estabelecimentos">
+            <div class="card">
+                <div class="card-body">
+                  Estabelecimentos Cadastrados: <%= estabelecimentos.length %>
+                </div>
             </div>
         </div>
+    
+        <div class="tabela-usuarios">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th><h4><span class="badge bg-dark">Id</span></h4></th>
+                        <th><h4><span class="badge bg-dark">Nome</span></h4></th>
+                        <th><h4><span class="badge bg-dark">E-mail</span></h4></th>
+                        <th><h4><span class="badge bg-dark">Ações</span></h4></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% for(let i = 0; i < estabelecimentos.length; i++){ %>
+                        <tr>
+                            <td><h5><span class="badge bg-dark"><%= estabelecimentos[i].estabelecimento_id %></span></h5></td>
+                            <td><%= estabelecimentos[i].estabelecimento_nome %></td>
+                            <td><%= estabelecimentos[i].estabelecimento_email %></td>
+                            <td>
+                                <div class="adm-buttons">
+                                    <a href="/administracao/editar-estabelecimento/<%= estabelecimentos[i].estabelecimento_id %>" class="btn btn-info">Editar</a> 
 
-        <div class="card" style="width: 18rem;">
-            <ul class="list-group list-group-flush">
-                <% for(let i = 0; i < estabelecimentos.length; i++){ %>
-                    <li class="list-group-item">
-                        Nome do estabelecimento: <%= estabelecimentos[i].estabelecimento_nome %>
-                        <br>
-                        Email Cadastrado: <%= estabelecimentos[i].estabelecimento_email %>
-                    </li>
-                <% } %>
-              
-            </ul>
+                                    <a href="/administracao/excluir-estabelecimento/<%= estabelecimentos[i].estabelecimento_id %>" class="btn btn-danger">Excluir</a>
+                                </div>
+                                
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <div>
-        
-    </div>
+
 </div>
 
 <%- include('../partials/footer') %>

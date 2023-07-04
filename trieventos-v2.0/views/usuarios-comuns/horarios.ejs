@@ -1,5 +1,7 @@
 <%- include('../partials/header') %>
 
+<div id="estabId" data-valor="<%= estab_id %>"></div> 
+
 <table class="horarios">
   <% const dias = ['Domingo','Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sabado'] %>
   <thead>
@@ -30,7 +32,7 @@
           <% } %>
           <td>
             <% if(encontrado == true) { %>
-              <% console.log(horarioEncontrado.horario_id) %>
+              <!--<% console.log(horarioEncontrado.horario_id) %>-->
               <button id="<%= horarioEncontrado.horario_id %>" type="button" class="btn btn-success" onclick="handleButtonClick(this)">Disponível</button>
             <% } else { %>
               <% if(encontrado == 'agendado') { %>
@@ -45,6 +47,8 @@
     <% } %>
   </tbody>
 </table>
+
+
 
 
 <div class="container-botoes">
@@ -69,9 +73,10 @@
 
   <div class="box-parent-login botoes">
       <div class="box-parent-login">
-          <form role="form" action="">
+          <form role="form" onsubmit="handleSubmit(event)">
               <fieldset>
-                  <input type="submit" value="Agendar" class="btn btn-primary"/>
+                <input type="hidden" name="horariosSelecionados" value="<%= horariosSelecionados %>"/>
+                <input type="submit" value="Agendar" class="btn btn-primary"/>
               </fieldset>
           </form>
       </div>
@@ -79,8 +84,12 @@
   
 </div>
 
+
 <script>
   var horariosSelecionados = [];
+
+  var estab_id = document.getElementById('estabId').getAttribute('data-valor');
+
   function handleButtonClick(button) {
     if (button.id) {
       //alert(button);
@@ -93,9 +102,35 @@
       // Realize a ação desejada para o botão Falso
     }
 
-    /*alert(horariosSelecionados);*/
+    //alert(horariosSelecionados);
   }
   
+  function handleSubmit(event){
+    event.preventDefault();
+
+    //alert(estab_id);
+
+    var form = document.createElement('form');
+    form.method = "POST";
+    form.action = "/manipular-horarios";
+
+    var idInput = document.createElement('input');
+    idInput.type = "hidden";
+    idInput.name = "idEstab";
+    idInput.value = JSON.stringify(estab_id);
+    form.appendChild(idInput);
+
+    var arrayInput = document.createElement('input');
+    arrayInput.type = "hidden";
+    arrayInput.name = "horariosSelecionados";
+    arrayInput.value = JSON.stringify(horariosSelecionados);
+    form.appendChild(arrayInput);
+
+    document.body.appendChild(form);
+
+    form.submit();
+  }
+
 </script>
 
 <%- include('../partials/footer') %>
