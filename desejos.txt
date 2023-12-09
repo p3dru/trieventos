@@ -1,0 +1,50 @@
+O trieventos é uma plataforma onde empresas inserem seus locais/espaços no site e possam disponibilizá-lo para locação.
+Locatários/Empresas/Locais:
+  Fazem isso por meio do cadastro de empresas, que tem acesso à uma página de cadastro onde inserem as informações de seu espaço:
+    1 - Nome da empresa ou local
+    2 - Email
+    3 - Senha
+    4 - Confirmação de senha
+    5 - Endereço
+    6 - Cidade
+    7 - Estado
+    8 - Foto de Perfil
+    9 - Imagens do local
+    10 - Categorias oferecidos -> esportes, lazer, turismo entre outras
+    11 - Serviços ofertados -> quadra de vôlei, vôlei de areia, futebol society, alimentação, piscina, entre outros.
+    12 - Precificação
+    13 - Horários Disponíveis -> Para locais que locam por hora, apresentar uma tabela, para locais que locam por dias e meses, apresentar calendário
+
+  Após inscreverem-se, serão redirecionados para a tela de login de usuários locatários.
+  Na tela home, estará um card de como o local está exibido na tela de home dos usuários comuns, com o botão de "editar", onde ele poderá atualizar todos os dados do local, execeto 
+  o nome, a menos que seja realizado um pedido para a admininstração do site (Para evitar problemas em pesquisas dos usuários). Esse card está em uma div e toma metade do espaço da div,
+  na outra metade fica a tabela de horários ou dias preenchidos, dependendo do tipo de locação prestada. A tabela de horários é baseadas nas categorias selecionadas (Normalmente
+  locação de locais onde se pratica esportes, são feitas por hora, turismo ou lazer, por dia ou dias). Haverá uma Navbar com o logo do trieventos, planos de preços detalhados e sobre.
+
+Locadores/usuários comuns:
+  Farão o cadastro na plataforma com os seguintes dados a serem preenchidos:
+    1 - Nome
+    2 - Email
+    3 - Senha
+    4 - Confirmação de senha
+    5 - Imagem de perfil
+
+  Após inscreverem-se, serão redirecionados para a tela de login de usuários locadores.
+    - Na tela de home de locadores, serão exibidas uma lista de cards contendo todos os locais disponíveis para aluguel no sistema. Cada card possui um botão "ver detalhes", onde 
+    redireciona para a tela de visualização de detalhes do local.
+    - Na tela de detalhes de local para locação, deve aparecer as informações do local como nome, descrição, categoria, endereço, foto de perfil, fotos de locais, categorias, 
+    precificação em uma div tomando metade da tela e na outra metade, um espaço para a tabela mostrar os espaços disponíveis. A tabela, serve também como selecionador de horários, 
+    o usuário poderá clicar nos horários disponíveis e selecioná-los para locação, um botão de "salvar" deverá efetivar as seleções de horários.
+    - O usuário também terá uma navbar onde terá uma tela de sobre e uma área dedicada à edição de seu perfil, onde ele poderá alterar seu nome, email, senha e foto de perfil (atributos).
+
+  
+Implementações futuras:
+  - Pagamento direto pelo aplicativo via pix
+  - Tela de criação de notificações para usuários, sobre promoções, manutenção de locais ou outras questões relacionadas ao espaço. Essa implementação é para os usuários locatários.
+  - Tela de relatório para empresas com o histórico de locações por dia, faturamento e avaliações.
+  - Adicionar filtro de cidade/estado nas exibições de locais para os usuários, a partir do filtro de localização.
+  - Cada estabelecimento tem sua regra de negócio quanto questão de pagamento de taxa de cancelamento, permitir que isso seja implementado de forma flexível para cada um dos locais, 
+  onde se o usuário descumprir o pagamento da taxa, o preço se acumula no pagamento da próxima locação (essa responsabilidade não deveria ser nossa, mas talvez possamos implementar).
+  - O usuário locador também terá uma área de acesso onde ele poderá verificar o seu histórico de locação.
+  - Avaliação do local, após cada finalização de locação, será sugerido ao usuário, uma avaliação da locação e do espaço. Porém para não repetir avaliações, devemos manter a avaliaçao de
+  forma periódica, cerca de 3 ou 4 locações depois. 
