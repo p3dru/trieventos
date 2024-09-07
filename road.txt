@@ -1,0 +1,312 @@
+Dividido em:
+1 - Instruções de configuração e instalação/códigos úteis
+2 - Lembretes
+3 - TypeORM
+4 - React (front)
+5 - Dicas Github
+
+#Instruções
+1 - $ npm i -g @nestjs/cli -> instala o nestjs
+2 - $ nest new [project-name] -> cria um novo projeto
+3 - npm run start -> levanta o server
+4 - Recipies -> Crud Generator -> nest g resource [nome-do-recurso-no-plural]
+    (cria os cruds da aplicação com controller, module e service)
+5 - 3
+6 - instalar env para arquivos .env apropriados -> $ npm i --save @nestjs/config (altera o package.json e o -lock.json)
+7 - Importar o ConfigModule em app.module.ts -> imports: [ConfigModule.forRoot(), ... outros módulos]
+8 - instalar typeorm e pg (postgres) para lidar com o bd -> npm install --save @nestjs/typeorm typeorm pg
+9 - Importar typeorm no appModule.ts:
+...
+    @Module({
+  imports: [
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: 'localhost',
+      port: 5432,
+      username: '',
+      password: '',
+      database: '',
+      entities: [],
+      synchronize: true,
+    }),
+  ],
+})
+...
+10 - Definir entidades -> ir para recurso.entity.ts:
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+
+@Entity()
+export class [Entidade] {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column()
+  firstName: string;
+
+  @Column()
+  lastName: string;
+
+  @Column({ default: true })
+  isActive: boolean;
+}
+
+11 - Em app.module.ts:
+@Module({
+    imports: [
+        TypeOrmModule.forRoot({
+            ...
+            entities: [Entidade] <- adicionar entidade aqui
+            ..
+        })
+    ]
+})
+export class AppModule{}
+
+12 - Uma vez definido a entidade, vamos até Entidade.module.ts:
+...
+@Module({
+    imports: [TypeOrmModule.forFeature([Entidade])],
+    ...
+})
+export class UserModule{}
+(Usa o forFeature() para definir quais repositórios são registrados no
+escopo atual. Com isso feito, podemos injetar os EntidadeRepository ]
+em EntidadeService)
+
+13 - Em Entidade.service.ts:
+@Injectable()
+export class EntidadeService{
+    constructor(
+        @InjectRepository(Entidade)
+        private EntidadeRepository: Repository<Entidade>
+    ){}
+
+    ... métodos ex:
+    findAll(): Promise<Entidade[]>{
+        return this.EntidadeRepository.find()
+    }
+
+    findOne(id: number): Promise<Entidade | null> {
+    return this.EntidadeRepository.findOneBy({ id });
+  }
+}
+
+13 - Importar EntidadeModule em AppModule:
+imports: [
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: 'localhost',
+      port: 5432,
+      username: 'postgres',
+      password: '',
+      database: '',
+      entities: [Entidades],
+      autoLoadEntities: true <- pega todas as entidades
+      synchronize: true,
+    }),
+    ConfigModule.forRoot(), EntidadeModule], <- aqui
+
+14 - Instalamos o nodemon com ts-node-dev -> npm install -g ts-node-dev nodemon
+
+15 - Para rodar as atualizações automaticamente:
+Em package.json -> scripts:{
+    ...
+    "start:dev": "nodemon --exec ts-node-dev src/main.ts",
+    ...
+}
+16 - Como usar o DTO para pegar put e post:
+1 - instalar class-validator class-transformer: npm i --save class-validator class-transformer
+2 - Criar o DTO
+import { IsString, IsEmail, IsNotEmpty, IsOptional, IsEnum } from 'class-validator';
+
+export class ResourceDTO {
+    //a partir daqui, apenas campos
+  @IsString()
+  @IsNotEmpty()
+  nome: string;
+
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  senha: string;
+
+  @IsOptional()
+  imagem_perfil: Buffer;
+
+  @IsString()
+  @IsNotEmpty()
+  tipo: string;
+}
+
+3 - Definimos no controller, um método que chama o resourceService:
+    ... levando em consideração que já importamos o constructor chamando
+    ResourceService
+    @Post()
+    async criarRecurso(@Body() resourceDTO: ResourceDTO){
+        return this.resourceService.criarRecurso(resourceDTO);
+    }
+
+    @Put(':id')
+    async atualizarRecurso(@Param('id') id: number, @Body() resourceDTO: ResourceDTO){
+        return this.resourceService.atualizarRecurso(id, resourceDTO);
+    }
+
+4 - resourceService, precisamos implementar os métodos:
+    @Injectable()
+    export class ResourceService {
+    constructor(
+        @InjectRepository(Resource)
+        private resourceRepository: Repository<Resource>,
+    ) {}
+
+    async criarRecurso(resourceDTO: ResourceDTO): Promise<Resource>{
+        const resource = this.resourceRepository.create(resourceDTO); <- create pq ele é o comando que cria no bd
+        return await this.resourceRepository.save(resource); <- save pq ele salva no bd (claro)
+    }
+
+    async atualizarRecurso(id: number, resourceDTO: ResourceDTO): Promise<Resource> {
+        const resource = await this.resourceRepository.findOne(id);
+        if (!resource) {
+            throw new NotFoundException('Recurso não encontrado');
+        }
+
+        // Atualize os campos do usuário com base nos dados do DTO
+        Object.assign(resource, resourceDTO);
+
+        return await this.resourceRepository.save(resource);
+        }
+    }
+    ...
+5 - Testar no postman:
+No "+" colocar o tipo de solicitação "Post"
+Em Body, selecionar x-wwww-form-encoded
+Criar as keys com base nos campos do banco
+Preencher com dados
+"Send"
+Todas as http requests são parecidas de se configurar por lá
+
+
+#Lembretes:
+1 - O controller pega as rotas (com ou sem parâmetros) e distribui
+2 - O controller chama o service a partir da importação e construção dele em: 
+    @Controller('Recurso')
+    export class RecursoController {
+        constructor(private readonly EntidadeService: EntidadeService) {}
+    ...
+    }
+3 - O service é um arquivo de função que executa um determinado método
+    sempre que o controller chama especificamente por ele:
+    No controller:
+    @Get()
+    buscarTodos() {
+        return this.RecursoService.buscarTodos();
+    }
+
+    No Service (O processamento é feito aqui):
+    buscarTodos(): Promise<Entidade[]> {
+        return this.EntidadeRepository.find();
+    }
+
+    Há um match entre nome chamado no "recursoService.funcao() e 
+    funcao(): Promise<Entidade[]> obrigatoriamente 
+
+[ver -> https://docs.nestjs.com/techniques/database]
+
+4 - Alterações de entidades do bd devem ser feitas em "Entidade.entity.ts"
+5 - criar ao menos a estrutura do banco (database vamo-nos)
+
+
+#TypeORM
+1 - @PrimaryGeneratedColumn(): Define uma coluna como uma chave primária que é automaticamente gerada.
+    @PrimaryGeneratedColumn()
+    id: number;
+2 - @Column(): Define uma coluna de banco de dados
+    @Column()
+    username: string;
+3 - @Column("text") -> cria (no postgres uma coluna de texto);
+    @Column("text")
+    myTextField: string;
+4 - @Column({ type: "bytea" }) <- Para Salvar imagem
+    data: Buffer;
+5 - @Column({length: 50}) <- define o tamanho da string (varchar(50))
+    nome: string
+6 - @Column({nullable: false}) <- define como not null
+    nome: string
+7 - @Unique(): Define uma restrição de unicidade em uma coluna.
+    @Entity()
+    @Unique(["username"])
+    class User {
+        @Column()
+        username: string;
+    }
+8 - @Check(): Define uma restrição de verificação em uma coluna.
+    @Column()
+    age: number;
+
+    @Check("age >= 18")
+    @Column()
+    isAdult: boolean; <- preenche automaticamente com base em uma outra coluna
+9 - @Index(): Define um índice em uma ou várias colunas. Indices são ferramentas
+    de otimização de pesquisas
+    @Index()
+    @Column()
+    email: string;
+10 - @Generated(): Define uma coluna com um valor gerado automaticamente.
+    @Entity()
+    class Order {
+        @Generated("increment")
+        @Column()
+        orderNumber: number;
+    }
+11 - @ManyToOne() e @OneToMany(): Define relacionamentos entre entidades em um banco de dados.
+    @Entity()
+    class Author {
+        @PrimaryGeneratedColumn()
+        id: number;
+
+        @OneToMany(() => Book, (book) => book.author)
+        books: Book[];
+    }
+
+    @Entity()
+    class Book {
+        @PrimaryGeneratedColumn()
+        id: number;
+
+        @ManyToOne(() => Author, (author) => author.books)
+        author: Author;
+    }
+12 - ver sobre migrations typeorm https://typeorm.io/using-cli#installing-cli
+
+
+#React (front)
+1 - Na pasta do projeto, criar um novo app react-> npx create-react-app [nome-projeto] --template typescript
+2 - Estrutura:
+    src/
+    components/
+        Recurso/
+        ListaDeRecursos.tsx
+        CriarRecurso.tsx
+        AtualizarRecurso.tsx
+    App.tsx
+    index.tsx
+3 - Em src/ criar components
+4 - Em components criar uma pasta para cada recurso
+5 - Dentro de cada recurso, criar os .tsx que são docs que irão renderizar
+6 - configurar o react router (permite rotas dentro do app react) -> npm install react-router-dom
+7 - Como configurar as rotas?
+
+
+
+#github
+1 - Criar o repositório no github
+2 - Pelo cmd, navegar até onde o projeto está e digitar -> git init (transforma o projeto em um projeto git)
+3 - Linkar o projeto com o repositório -> git remote add origin [link do repositório] (pega o link em "code" no github)
+4 - O nest já tem o gitignore (serve para evitar subir arquivos desnecessarios ou com dados sensiveis), passe para o 5
+[Sempre que fizer alterações relevantes, siga abaixo]
+5 - git add . para adicionar todos os arquivos e diretórios
+6 - git commit -m "Primeiro commit" (o -m é para criar mensagens de commit para identificar melhor as alterações)
+7 - git push origin master (para efetivar as mudanças e refletir no git na nova branch master) (caso dê errado, no final -f)
